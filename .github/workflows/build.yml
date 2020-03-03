@@ -8,22 +8,26 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Go
+      -
+        name: Set up Go
         uses: actions/setup-go@v1
         with:
           go-version: 1.14
 
-      - name: Check out code into the Go module directory
+      -
+        name: Check out code into the Go module directory
         uses: actions/checkout@master
 
-      - name: Unshallow
-        run: git fetch --prune --unshallow
-
-      - name: Lint Go Code
+      -
+        name: Get dependencies
         run: |
-          export PATH=$PATH:$(go env GOPATH)/bin
+          go get -v -d ./...
           go get -u golang.org/x/lint/golint
-          make lint
+          go list -f {{.Target}} golang.org/x/lint/golint
+
+      -
+        name: Lint Go Code
+        run: /home/runner/go/bin/golint ./...
 
   test:
     name: Test
