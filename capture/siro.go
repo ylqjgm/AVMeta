@@ -22,21 +22,21 @@ func (s *SiroCapture) Fetch(code string) error {
 	// 设置番号
 	s.number = strings.ToUpper(code)
 	// 定义Cookies
-	var cookies []http.Cookie
+	var cookies []*http.Cookie
 	// 加入Cookie
-	cookies = append(cookies, http.Cookie{
+	cookies = append(cookies, &http.Cookie{
 		Name:    "adc",
 		Value:   "1",
 		Path:    "/",
 		Domain:  "mgstage.com",
-		Expires: time.Now().Add(1 * time.Hour),
+		Expires: time.Now().Add(ONE * time.Hour),
 	})
 	// 组合地址
 	uri := fmt.Sprintf("https://www.mgstage.com/product/product_detail/%s/", s.number)
 	// 打开链接
 	root, err := GetRoot(uri, s.Proxy, cookies)
 	// 检查
-	if nil != err {
+	if err != nil {
 		return err
 	}
 
@@ -115,7 +115,7 @@ func (s *SiroCapture) GetActors() map[string]string {
 	})
 
 	// 是否获取到
-	if 0 >= len(actors) {
+	if len(actors) <= ZERO {
 		// 重新获取
 		name := s.root.Find(`th:contains("出演")`).Next().Text()
 		// 获取演员名字

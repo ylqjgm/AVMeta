@@ -23,19 +23,19 @@ func (s *JavBusCapture) Fetch(code string) error {
 	// 获取信息
 	err := s.detail()
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		// 设置番号
 		s.number = strings.ReplaceAll(s.number, "-", "_")
 		// 使用 _ 方式
 		err = s.detail()
 		// 检查错误
-		if nil != err {
+		if err != nil {
 			// 设置番号
 			s.number = strings.ReplaceAll(strings.ReplaceAll(s.number, "-", ""), "_", "")
 			// 去除符号
 			err = s.detail()
 			// 检查错误
-			if nil != err {
+			if err != nil {
 				return fmt.Errorf("404 Not Found")
 			}
 		}
@@ -51,7 +51,7 @@ func (s *JavBusCapture) detail() error {
 	// 获取节点
 	root, err := GetRoot(uri, s.Proxy, nil)
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return err
 	}
 

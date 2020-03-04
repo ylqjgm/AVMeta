@@ -40,7 +40,7 @@ func (s *HeyzoCapture) Fetch(code string) error {
 	// 设置番号
 	s.number = strings.ToUpper(code)
 	// 番号正则
-	r, _ := regexp.Compile(`[0-9]{4}`)
+	r := regexp.MustCompile(`[0-9]{4}`)
 	// 临时番号
 	s.code = r.FindString(code)
 	// 组合地址
@@ -48,14 +48,14 @@ func (s *HeyzoCapture) Fetch(code string) error {
 	// 打开连接
 	root, err := GetRoot(uri, s.Proxy, nil)
 	// 检查
-	if nil != err {
+	if err != nil {
 		return err
 	}
 
 	// 获取json节点
 	data, err := root.Find(`script[type="application/ld+json"]`).Html()
 	// 检查
-	if nil != err {
+	if err != nil {
 		return err
 	}
 	// json对象
@@ -65,7 +65,7 @@ func (s *HeyzoCapture) Fetch(code string) error {
 	// 转换为结构体
 	err = json.Unmarshal([]byte(data), js)
 	// 检查
-	if nil != err {
+	if err != nil {
 		return err
 	}
 
@@ -91,7 +91,7 @@ func (s *HeyzoCapture) GetIntro() string {
 
 // GetDirector 获取导演
 func (s *HeyzoCapture) GetDirector() string {
-	return "HEYZO"
+	return HEYZO
 }
 
 // GetRelease 发行时间
@@ -104,19 +104,19 @@ func (s *HeyzoCapture) GetRuntime() string {
 	// 获取时长
 	duration := s.json.Duration
 	// 时长搜索正则
-	r, _ := regexp.Compile(`^PT(\d+)H(\d+)M(\d+)S$`)
+	r := regexp.MustCompile(`^PT(\d+)H(\d+)M(\d+)S$`)
 	// 搜索
 	t := r.FindStringSubmatch(duration)
 	// 获取小时
 	hour, err := strconv.Atoi(t[1])
 	// 检查
-	if nil != err {
+	if err != nil {
 		hour = 0
 	}
 	// 获取分钟
 	minute, err := strconv.Atoi(t[2])
 	// 检查
-	if nil != err {
+	if err != nil {
 		minute = 0
 	}
 

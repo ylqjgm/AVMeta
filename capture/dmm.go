@@ -32,13 +32,13 @@ func (s *DMMCapture) Fetch(code string) error {
 	// 打开连接
 	root, err := GetRoot(uri, s.Proxy, nil)
 	// 检查
-	if nil != err {
+	if err != nil {
 		// 重新组合地址
 		uri = fmt.Sprintf("https://www.dmm.co.jp/mono/dvd/-/detail/=/cid=%s", code)
 		// 打开连接
 		root, err = GetRoot(uri, s.Proxy, nil)
 		// 再次检查错误
-		if nil != err {
+		if err != nil {
 			return err
 		}
 	}
@@ -61,13 +61,13 @@ func GetDmmIntro(code, proxy string) string {
 	// 打开连接
 	root, err := GetRoot(uri, proxy, nil)
 	// 检查
-	if nil != err {
+	if err != nil {
 		// 重新组合地址
 		uri = fmt.Sprintf("https://www.dmm.co.jp/mono/dvd/-/detail/=/cid=%s", code)
 		// 打开连接
 		root, err = GetRoot(uri, proxy, nil)
 		// 再次检查错误
-		if nil != err {
+		if err != nil {
 			return ""
 		}
 	}
@@ -90,7 +90,7 @@ func (s *DMMCapture) GetDirector() string {
 	// 获取导演
 	director := s.root.Find(`td:contains("監督：")`).Next().Find("a").Text()
 	// 如果没有
-	if "" == director {
+	if director == "" {
 		director = s.root.Find(`td:contains("監督：")`).Next().Text()
 	}
 
@@ -102,7 +102,7 @@ func (s *DMMCapture) GetRelease() string {
 	// 获取发行时间
 	release := s.root.Find(`td:contains("発売日：")`).Next().Find("a").Text()
 	// 没获取到
-	if "" == release {
+	if release == "" {
 		release = s.root.Find(`td:contains("発売日：")`).Next().Text()
 	}
 
@@ -122,7 +122,7 @@ func (s *DMMCapture) GetStudio() string {
 	// 获取厂商
 	studio := s.root.Find(`td:contains("メーカー")`).Next().Find("a").Text()
 	// 是否获取到
-	if "" == studio {
+	if studio == "" {
 		studio = s.root.Find(`td:contains("メーカー")`).Next().Text()
 	}
 
@@ -134,7 +134,7 @@ func (s *DMMCapture) GetSerise() string {
 	// 获取系列
 	set := s.root.Find(`td:contains("シリーズ：")`).Next().Find("a").Text()
 	// 是否获取到
-	if "" == set {
+	if set == "" {
 		set = s.root.Find(`td:contains("シリーズ：")`).Next().Text()
 	}
 

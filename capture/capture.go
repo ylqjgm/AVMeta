@@ -2,6 +2,7 @@ package capture
 
 import (
 	"bytes"
+	/* #nosec */
 	"crypto/md5"
 	"crypto/tls"
 	"encoding/hex"
@@ -19,6 +20,22 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
+)
+
+const (
+	// HEYZO 常量
+	HEYZO = "HEYZO"
+	// TOKYOHOT 常量
+	TOKYOHOT = "東京熱"
+	// FC2 常量
+	FC2 = "FC2"
+
+	// ZERO 数字0
+	ZERO = 0
+	// ONE 数字1
+	ONE = 1
+	// TWO 数字2
+	TWO = 2
 )
 
 // ICapture 刮削器接口
@@ -56,7 +73,7 @@ type ICapture interface {
 
 // MD5Verify md5验证
 func MD5Verify(data []byte, source string) bool {
-	// md5加密
+	/* #nosec */
 	ret := md5.Sum(data)
 	// 获取加密字符串
 	md5Str := hex.EncodeToString(ret[:])
@@ -68,14 +85,14 @@ func MD5Verify(data []byte, source string) bool {
 // CheckDomainPrefix 检查域名最后的斜线
 func CheckDomainPrefix(domain string) string {
 	// 是否为空
-	if "" == domain || 0 == len(domain) {
+	if domain == "" {
 		return ""
 	}
 
 	// 获取最后一个字符
 	last := domain[len(domain)-1:]
 	// 如果是斜线
-	if "/" == last {
+	if last == "/" {
 		domain = domain[:len(domain)-1]
 	}
 
@@ -104,7 +121,7 @@ func ConvertJPG(sourceFile, newFile string) error {
 	// 打开原文件
 	f, err := os.Open(sourceFile)
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return err
 	}
 	// 关闭连接
@@ -113,31 +130,22 @@ func ConvertJPG(sourceFile, newFile string) error {
 	// 图片解码
 	src, _, err := image.Decode(f)
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return err
 	}
 
 	// 获取图片信息
 	b := src.Bounds()
 
-	// 定义新图片对象
-	var img image.Image
-
 	// YCBCr
-	if rgbImg, ok := src.(*image.YCbCr); ok {
-		img = rgbImg.SubImage(image.Rect(0, 0, b.Max.X, b.Max.Y)).(*image.YCbCr)
-	} else if rgbImg, ok := src.(*image.RGBA); ok { // RGBA
-		img = rgbImg.SubImage(image.Rect(0, 0, b.Max.X, b.Max.Y)).(*image.RGBA) //图片裁剪x0 y0 x1 y1
-	} else if rgbImg, ok := src.(*image.NRGBA); ok { // NRGBA
-		img = rgbImg.SubImage(image.Rect(0, 0, b.Max.X, b.Max.Y)).(*image.NRGBA) //图片裁剪x0 y0 x1 y1
-	} else {
-		return fmt.Errorf("图片解码失败")
-	}
+	img := src.(interface {
+		SubImage(r image.Rectangle) image.Image
+	}).SubImage(image.Rect(0, 0, b.Max.X, b.Max.Y))
 
 	// 新建并打开新图片
 	cf, err := os.OpenFile(newFile, os.O_SYNC|os.O_RDWR|os.O_CREATE, 0666)
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return err
 	}
 	// 关闭
@@ -148,28 +156,35 @@ func ConvertJPG(sourceFile, newFile string) error {
 }
 
 // MakeRequest 发起请求
-func MakeRequest(method, uri, proxy string, body io.Reader, header map[string]string, cookies []http.Cookie) ([]byte, int, error) {
+func MakeRequest(
+	method, uri, proxy string,
+	body io.Reader,
+	header map[string]string,
+	cookies []*http.Cookie) (
+	data []byte,
+	status int,
+	err error) {
 	// 构建请求客户端
 	client := createHTTPClient(proxy)
 
 	// 创建请求对象
 	req, err := createRequest(method, uri, body, header, cookies)
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return nil, 0, err
 	}
 
 	// 执行请求
 	res, err := client.Do(req)
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return nil, 0, err
 	}
 
 	// 获取请求状态码
-	status := res.StatusCode
+	status = res.StatusCode
 	// 读取请求内容
-	data, err := ioutil.ReadAll(res.Body)
+	data, err = ioutil.ReadAll(res.Body)
 	// 关闭请求连接
 	_ = res.Body.Close()
 
@@ -177,16 +192,18 @@ func MakeRequest(method, uri, proxy string, body io.Reader, header map[string]st
 }
 
 // GetResult 获取远程字节集数据
-func GetResult(uri, proxy string, cookies []http.Cookie) ([]byte, error) {
+func GetResult(uri, proxy string, cookies []*http.Cookie) ([]byte, error) {
 	// 头部定义
 	header := make(map[string]string)
 	// 加入头部信息
-	header["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36"
+	header["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+		"AppleWebKit/537.36 (KHTML, like Gecko) " +
+		"Chrome/68.0.3440.106 Safari/537.36"
 
 	// 执行请求
 	body, status, err := MakeRequest("GET", uri, proxy, nil, header, cookies)
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return nil, err
 	}
 
@@ -199,18 +216,18 @@ func GetResult(uri, proxy string, cookies []http.Cookie) ([]byte, error) {
 }
 
 // GetRoot 获取远程节点数据
-func GetRoot(uri, proxy string, cookies []http.Cookie) (*goquery.Document, error) {
+func GetRoot(uri, proxy string, cookies []*http.Cookie) (*goquery.Document, error) {
 	// 获取远程字节集数据
 	data, err := GetResult(uri, proxy, cookies)
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return nil, err
 	}
 
 	// 转换为节点数据
 	root, err := goquery.NewDocumentFromReader(bytes.NewReader(data))
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return nil, err
 	}
 
@@ -222,21 +239,21 @@ func SavePhoto(uri, savePath, proxy string) error {
 	// 创建路径
 	err := os.MkdirAll(filepath.Dir(savePath), os.ModePerm)
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return err
 	}
 
 	// 读取远程字节集
 	body, err := GetResult(uri, proxy, nil)
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return err
 	}
 
 	// 获取远程图片大小
 	length := int64(len(body))
 	// 检查大小
-	if 0 == length || 1024 > length {
+	if length == 0 || length < 1024 {
 		return fmt.Errorf("远程图片不完整或小于1KB")
 	}
 
@@ -253,12 +270,12 @@ func SavePhoto(uri, savePath, proxy string) error {
 func createHTTPClient(proxy string) *http.Client {
 	// 初始化
 	transport := &http.Transport{
-		// 跳过tls
+		/* #nosec */
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 
 	// 如果有代理
-	if "" != proxy {
+	if proxy != "" {
 		// 解析代理地址
 		proxyURI := func(_ *http.Request) (*url.URL, error) {
 			return url.Parse(proxy)
@@ -275,11 +292,11 @@ func createHTTPClient(proxy string) *http.Client {
 }
 
 // 创建请求对象
-func createRequest(method, uri string, body io.Reader, header map[string]string, cookies []http.Cookie) (*http.Request, error) {
+func createRequest(method, uri string, body io.Reader, header map[string]string, cookies []*http.Cookie) (*http.Request, error) {
 	// 新建请求
 	req, err := http.NewRequest(method, uri, body)
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return nil, err
 	}
 
@@ -290,11 +307,11 @@ func createRequest(method, uri string, body io.Reader, header map[string]string,
 	}
 
 	// 设置了cookie
-	if 0 < len(cookies) {
+	if len(cookies) > 0 {
 		// 循环cookie
 		for _, cookie := range cookies {
 			// 加入cookie
-			req.AddCookie(&cookie)
+			req.AddCookie(cookie)
 		}
 	}
 
@@ -312,7 +329,7 @@ func saveFile(savePath string, data []byte, length int64) error {
 	// 创建空文件
 	f, err := os.Create(savePath)
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return err
 	}
 
@@ -321,7 +338,7 @@ func saveFile(savePath string, data []byte, length int64) error {
 	// 拷贝到指定路径
 	_, err = io.Copy(f, rc)
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return err
 	}
 
@@ -331,7 +348,7 @@ func saveFile(savePath string, data []byte, length int64) error {
 	// 获取文件信息
 	info, err := os.Stat(savePath)
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return err
 	}
 

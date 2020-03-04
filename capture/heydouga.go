@@ -40,11 +40,11 @@ func (s *HeydougaCapture) Fetch(code string) error {
 	// 转换大写
 	code = strings.ToUpper(code)
 	// 番号正则
-	r, _ := regexp.Compile(`([0-9]{4}).+?([0-9]{3,4})`)
+	r := regexp.MustCompile(`([0-9]{4}).+?([0-9]{3,4})`)
 	// 临时番号
 	code = strings.TrimSpace(strings.ReplaceAll(strings.ReplaceAll(r.FindString(code), "PPV", ""), "HEYDOUGA", ""))
 	// 检查是否为空
-	if "" == code {
+	if code == "" {
 		return fmt.Errorf("找不到番号")
 	}
 
@@ -53,7 +53,7 @@ func (s *HeydougaCapture) Fetch(code string) error {
 	// 番号分割
 	cs := strings.Split(code, "-")
 	// 检查是否有两个
-	if 2 != len(cs) {
+	if len(cs) >= TWO {
 		return fmt.Errorf("找不到番号")
 	}
 
@@ -65,7 +65,7 @@ func (s *HeydougaCapture) Fetch(code string) error {
 	// 打开连接
 	data, status, err := MakeRequest("GET", uri, s.Proxy, nil, nil, nil)
 	// 检查
-	if nil != err || http.StatusNotFound == status {
+	if err != nil || http.StatusNotFound == status {
 		// 设置番号前后缀
 		s.code1 = cs[0]
 		s.code2 = "ppv-" + cs[1]
@@ -74,7 +74,7 @@ func (s *HeydougaCapture) Fetch(code string) error {
 		// 打开链接
 		data, status, err = MakeRequest("GET", uri, s.Proxy, nil, nil, nil)
 		// 检查
-		if nil != err || http.StatusNotFound == status {
+		if err != nil || http.StatusNotFound == status {
 			return err
 		}
 	}
@@ -82,7 +82,7 @@ func (s *HeydougaCapture) Fetch(code string) error {
 	// 获取根节点
 	root, err := goquery.NewDocumentFromReader(bytes.NewReader(data))
 	// 检查
-	if nil != err {
+	if err != nil {
 		return err
 	}
 
@@ -136,13 +136,13 @@ func (s *HeydougaCapture) GetSerise() string {
 // GetTags 获取标签
 func (s *HeydougaCapture) GetTags() []string {
 	// movie_seq正则表达式
-	r, _ := regexp.Compile(`movie_seq:([0-9]+)`)
+	r := regexp.MustCompile(`movie_seq:([0-9]+)`)
 	mm := r.FindString(s.data)
 	fmt.Println(mm)
 	// 搜索movie_seq
 	m := strings.TrimSpace(strings.ReplaceAll(r.FindString(s.data), "movie_seq:", ""))
 	// 检查是否获取到
-	if "" == m {
+	if m == "" {
 		return nil
 	}
 
@@ -151,7 +151,7 @@ func (s *HeydougaCapture) GetTags() []string {
 	// 获取数据
 	data, err := GetResult(uri, s.Proxy, nil)
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return nil
 	}
 
@@ -160,7 +160,7 @@ func (s *HeydougaCapture) GetTags() []string {
 	// 转换为结构体
 	err = json.Unmarshal(data, js)
 	// 检查
-	if nil != err {
+	if err != nil {
 		return nil
 	}
 
@@ -192,7 +192,7 @@ func (s *HeydougaCapture) GetActors() map[string]string {
 		// 获取演员信息
 		act := strings.TrimSpace(item.Text())
 		// 检查
-		if "" == act {
+		if act == "" {
 			return
 		}
 		// 分割数据

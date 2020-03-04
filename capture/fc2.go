@@ -36,7 +36,7 @@ func (s *FC2Capture) Fetch(code string) error {
 	// 设置番号
 	s.number = strings.ToUpper(code)
 	// 过滤番号
-	r, _ := regexp.Compile(`[0-9]{6,7}`)
+	r := regexp.MustCompile(`[0-9]{6,7}`)
 	// 获取临时番号
 	s.code = r.FindString(code)
 	// 组合fc2地址
@@ -47,14 +47,14 @@ func (s *FC2Capture) Fetch(code string) error {
 	// 打开fc2
 	fc2Root, err := GetRoot(fc2uri, s.Proxy, nil)
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return err
 	}
 
 	// 打开fc2club
 	fc2clubRoot, err := GetRoot(fc2cluburi, s.Proxy, nil)
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return err
 	}
 
@@ -73,7 +73,7 @@ func (s *FC2Capture) GetTitle() string {
 	// 获取标题
 	title := s.fc2Root.Find(`.items_article_headerInfo h3`).Text()
 	// 检查
-	if "" == title {
+	if title == "" {
 		title = s.fc2clubRoot.Find(`.main h3`).Text()
 	}
 
@@ -90,7 +90,7 @@ func (s *FC2Capture) GetDirector() string {
 	// 获取导演
 	director := s.fc2Root.Find(`.items_article_headerInfo li:nth-child(3) a`).Text()
 	// 检查
-	if "" == director {
+	if director == "" {
 		director = s.fc2clubRoot.Find(`.main h5:nth-child(5) a:nth-child(2)`).Text()
 	}
 
@@ -109,12 +109,12 @@ func (s *FC2Capture) GetRuntime() string {
 
 // GetStudio 获取厂商
 func (s *FC2Capture) GetStudio() string {
-	return "FC2"
+	return FC2
 }
 
 // GetSerise 获取系列
 func (s *FC2Capture) GetSerise() string {
-	return "FC2"
+	return FC2
 }
 
 // GetTags 获取标签
@@ -125,14 +125,14 @@ func (s *FC2Capture) GetTags() []string {
 	// 读取远程数据
 	data, err := GetResult(uri, s.Proxy, nil)
 	// 检查
-	if nil != err {
+	if err != nil {
 		return nil
 	}
 
 	// 读取内容
 	body, err := ioutil.ReadAll(bytes.NewReader(data))
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return nil
 	}
 
@@ -142,7 +142,7 @@ func (s *FC2Capture) GetTags() []string {
 	// 解析json
 	err = json.Unmarshal(body, &tagsJSON)
 	// 检查
-	if nil != err {
+	if err != nil {
 		return nil
 	}
 
@@ -162,7 +162,7 @@ func (s *FC2Capture) GetFanart() string {
 	// 获取图片
 	fanart, _ := s.fc2clubRoot.Find(`.slides li:nth-child(1) img`).Attr("src")
 	// 检查
-	if "" == fanart {
+	if fanart == "" {
 		return ""
 	}
 	// 组合地址

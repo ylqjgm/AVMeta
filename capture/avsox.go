@@ -23,14 +23,14 @@ func (s *AVSoxCapture) Fetch(code string) error {
 	// 搜索番号
 	uri, err := s.search()
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return err
 	}
 
 	// 打开连接并获取节点
 	root, err := GetRoot(uri, s.Proxy, nil)
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return err
 	}
 
@@ -125,19 +125,19 @@ func (s *AVSoxCapture) search() (string, error) {
 	// 获取页面id
 	id, err := s.getID()
 	// 检查错误
-	if "" == id || nil != err {
+	if id == "" || err != nil {
 		// 将 - 转换为 _
 		s.number = strings.ReplaceAll(s.number, "-", "_")
 		// 重新获取
 		id, err = s.getID()
 		// 检查错误
-		if "" == id || nil != err {
+		if id == "" || err != nil {
 			// 去除番号
 			s.number = strings.ReplaceAll(s.number, "_", "")
 			// 再次获取
 			id, err = s.getID()
 			// 检查错误
-			if "" == id || nil != err {
+			if id == "" || err != nil {
 				return "", fmt.Errorf("404 Not Found")
 			}
 		}
@@ -153,7 +153,7 @@ func (s *AVSoxCapture) getID() (string, error) {
 	// 获取节点
 	root, err := GetRoot(uri, s.Proxy, nil)
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return "", err
 	}
 
@@ -182,7 +182,7 @@ func (s *AVSoxCapture) getID() (string, error) {
 	id = strings.TrimSpace(id)
 
 	// 检查
-	if "" == id {
+	if id == "" {
 		return "", fmt.Errorf("404 Not Found")
 	}
 

@@ -32,7 +32,7 @@ func (s *CaribBeanComCapture) Fetch(code string) error {
 	// 打开远程连接
 	data, err := GetResult(uri, s.Proxy, nil)
 	// 检查
-	if nil != err {
+	if err != nil {
 		return err
 	}
 
@@ -42,7 +42,7 @@ func (s *CaribBeanComCapture) Fetch(code string) error {
 	// 获取根节点
 	root, err := goquery.NewDocumentFromReader(reader)
 	// 检查
-	if nil != err {
+	if err != nil {
 		return err
 	}
 
@@ -64,7 +64,7 @@ func (s *CaribBeanComCapture) GetIntro() string {
 	// 获取简介
 	intro, err := s.root.Find(`p[itemprop="description"]`).Html()
 	// 检查
-	if nil != err {
+	if err != nil {
 		return ""
 	}
 
@@ -87,22 +87,22 @@ func (s *CaribBeanComCapture) GetRuntime() string {
 	strTime := strings.TrimSpace(s.root.Find(`span[itemprop="duration"]`).Text())
 
 	// 是否正确获取
-	if "" != strTime {
+	if strTime != "" {
 		// 搜索正则
-		r, _ := regexp.Compile(`^(\d+):(\d+):(\d+)$`)
+		r := regexp.MustCompile(`^(\d+):(\d+):(\d+)$`)
 		// 搜索
 		t := r.FindStringSubmatch(strTime)
 
 		// 获取小时
 		hour, err := strconv.Atoi(t[1])
 		// 检查
-		if nil != err {
+		if err != nil {
 			hour = 0
 		}
 		// 获取分钟
 		minute, err := strconv.Atoi(t[2])
 		// 检查
-		if nil != err {
+		if err != nil {
 			minute = 0
 		}
 

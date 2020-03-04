@@ -24,7 +24,7 @@ func (s *TokyoHotCapture) Fetch(code string) error {
 	// 获取编号
 	id, err := s.search()
 	// 检查
-	if "" == id || nil != err {
+	if id == "" || err != nil {
 		return fmt.Errorf("404 Not Found")
 	}
 
@@ -33,7 +33,7 @@ func (s *TokyoHotCapture) Fetch(code string) error {
 	// 打开链接
 	root, err := GetRoot(uri, s.Proxy, nil)
 	// 检查
-	if nil != err {
+	if err != nil {
 		return err
 	}
 
@@ -52,7 +52,7 @@ func (s *TokyoHotCapture) search() (id string, err error) {
 	// 获取节点
 	root, err := GetRoot(uri, s.Proxy, nil)
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return
 	}
 
@@ -69,7 +69,7 @@ func (s *TokyoHotCapture) search() (id string, err error) {
 		// 转换大写
 		number = strings.ToUpper(number)
 		// 比较是否一致
-		if number != strings.ToUpper(s.number) {
+		if !strings.EqualFold(strings.ToUpper(s.number), number) {
 			return
 		}
 		// 获取地址链接
@@ -77,12 +77,12 @@ func (s *TokyoHotCapture) search() (id string, err error) {
 	})
 
 	// 检查是否获取到
-	if "" == id {
+	if id == "" {
 		err = fmt.Errorf("404 Not Found")
 		return
 	}
 
-	return
+	return id, err
 }
 
 // GetTitle 获取名称
@@ -95,7 +95,7 @@ func (s *TokyoHotCapture) GetIntro() string {
 	// 获取简介
 	intro, err := s.root.Find(`div.sentence`).Html()
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return ""
 	}
 
@@ -104,7 +104,7 @@ func (s *TokyoHotCapture) GetIntro() string {
 
 // GetDirector 获取导演
 func (s *TokyoHotCapture) GetDirector() string {
-	return "東京熱"
+	return TOKYOHOT
 }
 
 // GetRelease 发行时间
@@ -117,22 +117,22 @@ func (s *TokyoHotCapture) GetRuntime() string {
 	// 获取时长
 	strTime := strings.TrimSpace(s.root.Find(`dt:contains("収録時間"`).Next().Text())
 	// 是否正确获取
-	if "" != strTime {
+	if strTime != "" {
 		// 搜索正则
-		r, _ := regexp.Compile(`^(\d+):(\d+):(\d+)$`)
+		r := regexp.MustCompile(`^(\d+):(\d+):(\d+)$`)
 		// 搜索
 		t := r.FindStringSubmatch(strTime)
 
 		// 获取小时
 		hour, err := strconv.Atoi(t[1])
 		// 检查
-		if nil != err {
+		if err != nil {
 			hour = 0
 		}
 		// 获取分钟
 		minute, err := strconv.Atoi(t[2])
 		// 检查
-		if nil != err {
+		if err != nil {
 			minute = 0
 		}
 
@@ -186,7 +186,7 @@ func (s *TokyoHotCapture) GetActors() map[string]string {
 		// 打开链接
 		root, err := GetRoot(uri, s.Proxy, nil)
 		// 检查错误
-		if nil != err {
+		if err != nil {
 			return
 		}
 

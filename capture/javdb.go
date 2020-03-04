@@ -23,7 +23,7 @@ func (s *JavDBCapture) Fetch(code string) error {
 	// 搜索
 	id, err := s.search()
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return err
 	}
 
@@ -33,7 +33,7 @@ func (s *JavDBCapture) Fetch(code string) error {
 	// 打开连接
 	root, err := GetRoot(uri, s.Proxy, nil)
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return err
 	}
 
@@ -53,7 +53,7 @@ func (s *JavDBCapture) search() (string, error) {
 	// 打开地址
 	root, err := GetRoot(uri, s.Proxy, nil)
 	// 检查错误
-	if nil != err {
+	if err != nil {
 		return "", err
 	}
 
@@ -72,7 +72,7 @@ func (s *JavDBCapture) search() (string, error) {
 		// 大写并去除空白
 		date = strings.ToUpper(strings.TrimSpace(date))
 		// 检查番号是否完全正确
-		if strings.ToUpper(s.number) == date {
+		if strings.EqualFold(strings.ToUpper(s.number), date) {
 			// 获取href元素
 			id, _ = item.Attr("href")
 		}
@@ -82,7 +82,7 @@ func (s *JavDBCapture) search() (string, error) {
 	id = strings.TrimSpace(id)
 
 	// 是否获取到
-	if "" == id {
+	if id == "" {
 		return "", fmt.Errorf("404 Not Found")
 	}
 
@@ -104,7 +104,7 @@ func (s *JavDBCapture) GetDirector() string {
 	// 获取数据
 	val := s.root.Find(`strong:contains("導演")`).Parent().NextFiltered(`span.value`).Text()
 	// 检查
-	if "" == val {
+	if val == "" {
 		val = s.root.Find(`strong:contains("導演")`).Parent().NextFiltered(`span.value`).Find("a").Text()
 	}
 
@@ -116,7 +116,7 @@ func (s *JavDBCapture) GetRelease() string {
 	// 获取数据
 	val := s.root.Find(`strong:contains("時間")`).Parent().NextFiltered(`span.value`).Text()
 	// 检查
-	if "" == val {
+	if val == "" {
 		val = s.root.Find(`strong:contains("時間")`).Parent().NextFiltered(`span.value`).Find("a").Text()
 	}
 
@@ -128,7 +128,7 @@ func (s *JavDBCapture) GetRuntime() string {
 	// 获取数据
 	val := s.root.Find(`strong:contains("時長")`).Parent().NextFiltered(`span.value`).Text()
 	// 检查
-	if "" == val {
+	if val == "" {
 		val = s.root.Find(`strong:contains("時長")`).Parent().NextFiltered(`span.value`).Find("a").Text()
 	}
 
@@ -143,7 +143,7 @@ func (s *JavDBCapture) GetStudio() string {
 	// 获取数据
 	val := s.root.Find(`strong:contains("片商")`).Parent().NextFiltered(`span.value`).Text()
 	// 检查
-	if "" == val {
+	if val == "" {
 		val = s.root.Find(`strong:contains("片商")`).Parent().NextFiltered(`span.value`).Find("a").Text()
 	}
 
@@ -155,7 +155,7 @@ func (s *JavDBCapture) GetSerise() string {
 	// 获取数据
 	val := s.root.Find(`strong:contains("系列")`).Parent().NextFiltered(`span.value`).Text()
 	// 检查
-	if "" == val {
+	if val == "" {
 		val = s.root.Find(`strong:contains("系列")`).Parent().NextFiltered(`span.value`).Find("a").Text()
 	}
 
