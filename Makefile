@@ -1,33 +1,45 @@
-PROJECT_NAME := "github.com/ylqjgm/AVMeta"
-PKG := "$(PROJECT_NAME)"
-PKG_LIST := $(shell go list ${PKG}/... | grep -v /vendor/)
-GO_FILES := $(shell find . -name '*.go' | grep -v /vendor/ | grep -v _test.go)
+.DEFAULT_GOAL = test
+.PHONY: FORCE
 
-.PHONY: all dep lint vet test test-coverage build clean
+SHELL := /bin/bash
+BASEDIR = $(shell pwd)
 
-all: build
+version = $(shell if [ "`git describe --tags --abbrev=0 2>/dev/null`" != "" ];then git describe --tags --abbrev=0; else echo master; fi)
+commit = $(shell git rev-parse --short HEAD)
+built = $(shell TZ=UTC date +%FT%T%z)
+ldflags="-s -w -X main.version=${version} -X main.commit=${commit} -X main.built=${built}"
 
-dep: ## Get the dependencies
-	@go mod download
+# enable module support across all go commands.
+export GO111MODULE = on
+# enable consistent Go 1.12/1.13 GOPROXY behavior.
+export GOPROXY = https://goproxy.io
 
-lint: ## Lint Golang files
-	@golint -set_exit_status ${PKG_LIST}
+# Build
 
-vet: ## Run go vet
-	@go vet ${PKG_LIST}
+build: AVMeta
+.PHONY: build
 
-test: ## Run unittests
-	@go test -short ${PKG_LIST}
+build_race:
+	go build -race -ldflags ${ldflags}
+.PHONY: build_race
 
-test-coverage: ## Run tests with coverage
-	@go test -short -coverprofile cover.out -covermode=atomic ${PKG_LIST}
-	@cat cover.out >> coverage.txt
+clean:
+	rm -f AVMeta
+.PHONY: clean
 
-build: dep ## Build the binary file
-	@go build -i -o build/main $(PKG)
+# Test
+test: build
+	go test -v ./...
+.PHONY: test
 
-clean: ## Remove previous build
-	@rm -f ./build
+AVMeta: FORCE
+	go build -ldflags ${ldflags}
 
-help: ## Display this help screen
-	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+go.mod: FORCE
+	go mod tidy
+	go mod verify
+go.sum: go.mod
+
+unexport GOFLAGS
+vendor_free_build: FORCE
+	go build -ldflags ${ldflags}

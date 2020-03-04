@@ -29,7 +29,7 @@ builds:
     ignore:
       - goos: darwin
         goarch: 386
-    ldflags: -s -w -X github.com/ylqjgm/AVMeta/cmd.ver={{ .Version }} -X github.com/ylqjgm/AVMeta/cmd.commit={{ .ShortCommit }} -X github.com/ylqjgm/AVMeta.cmd.built={{ .Date }}
+    ldflags: -s -w -X main.version={{ .Version }} -X main.commit={{ .ShortCommit }} -X main.built={{ .Date }}
 
 archives:
   - format: tar.gz
