@@ -1,6 +1,6 @@
 env:
   - GO111MODULE=on
-  - GOPROXY=https://goproxy.in
+  - GOPROXY=https://proxy.golang.org,direct
   - CGO_ENABLED=0
 
 before:
