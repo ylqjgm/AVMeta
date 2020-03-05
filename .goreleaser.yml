@@ -65,12 +65,29 @@ changelog:
       - Merge branch
 
 brews:
-  - github:
-    owner: ylqjgm
-    name: homebrew-tap
-  folder: Formula
+  -
+    name: gh
+    ids: [nix]
+    github:
+      owner: github
+      name: homebrew-gh
+    skip_upload: auto
+    folder: Formula
+    url_template: "https://github.com/ylqjgm/AVMeta/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    homepage: "https://githb.com/ylqjgm/AVMeta"
+    descript: "一个使用 Go 语言开发的 AV 元数据刮削器"
+    commit_author:
+      name: ylqjgm
+      email: ylqjgm@gmail.com
+
+scoop:
+  url_template: "https://github.com/ylqjgm/AVMeta/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+  bucket:
+    owner: cli
+    name: scoop-gh
+  commit_author:
+    name: ylqjgm
+    email: ylqjgm@gmail.com
   homepage: "https://githb.com/ylqjgm/AVMeta"
-  descript: "一个使用 Go 语言开发的 AV 元数据刮削器"
-  skip_upload: false
-  install: |
-    bin.install "AVMeta"
+  description: "一个使用 Go 语言开发的 AV 元数据刮削器"
+  license: MIT
