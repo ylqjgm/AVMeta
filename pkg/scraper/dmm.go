@@ -121,16 +121,16 @@ func (s *DMMScraper) GetRelease() string {
 
 // GetRuntime 获取时长
 func (s *DMMScraper) GetRuntime() string {
-	return strings.TrimRight(s.root.Find(`td:contains("収録時間")`).Next().Text(), "分")
+	return strings.TrimRight(s.root.Find(`td:contains("収録時間：")`).Next().Text(), "分")
 }
 
 // GetStudio 获取厂商
 func (s *DMMScraper) GetStudio() string {
 	// 获取厂商
-	studio := s.root.Find(`td:contains("メーカー")`).Next().Find("a").Text()
+	studio := s.root.Find(`td:contains("メーカー：")`).Next().Find("a").Text()
 	// 是否获取到
 	if studio == "" {
-		studio = s.root.Find(`td:contains("メーカー")`).Next().Text()
+		studio = s.root.Find(`td:contains("メーカー：")`).Next().Text()
 	}
 
 	return studio

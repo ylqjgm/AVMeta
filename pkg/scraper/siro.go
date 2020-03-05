@@ -36,7 +36,7 @@ func (s *SiroScraper) Fetch(code string) error {
 		Value:   "1",
 		Path:    "/",
 		Domain:  "mgstage.com",
-		Expires: time.Now().Add(util.ONE * time.Hour),
+		Expires: time.Now().Add(1 * time.Hour),
 	})
 	// 组合地址
 	uri := fmt.Sprintf("https://www.mgstage.com/product/product_detail/%s/", s.number)

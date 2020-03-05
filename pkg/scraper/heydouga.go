@@ -58,7 +58,7 @@ func (s *HeydougaScraper) Fetch(code string) error {
 	// 番号分割
 	cs := strings.Split(code, "-")
 	// 检查是否有两个
-	if len(cs) < util.TWO {
+	if len(cs) < 2 {
 		return fmt.Errorf("找不到番号")
 	}
 
@@ -70,7 +70,7 @@ func (s *HeydougaScraper) Fetch(code string) error {
 	// 打开连接
 	data, status, err := util.MakeRequest("GET", uri, s.Proxy, nil, nil, nil)
 	// 检查
-	if err != nil || http.StatusNotFound == status {
+	if err != nil || status >= http.StatusBadRequest {
 		// 设置番号前后缀
 		s.code1 = cs[0]
 		s.code2 = "ppv-" + cs[1]
@@ -79,8 +79,8 @@ func (s *HeydougaScraper) Fetch(code string) error {
 		// 打开链接
 		data, status, err = util.MakeRequest("GET", uri, s.Proxy, nil, nil, nil)
 		// 检查
-		if err != nil || http.StatusNotFound == status {
-			return err
+		if err != nil || status >= http.StatusBadRequest {
+			return fmt.Errorf("404 Not Found")
 		}
 	}
 

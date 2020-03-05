@@ -34,11 +34,6 @@ linters-settings:
     local-prefixes: github.com/ylqjgm/AVMeta
   golint:
     min-confidence: 0
-  gomnd:
-    settings:
-      mnd:
-        # don't include the "operation" and "assign"
-        checks: argument,case,condition,return
   govet:
     check-shadowing: true
   lll:
@@ -67,7 +62,6 @@ linters:
     - gofmt
     - goimports
     - golint
-    - gomnd
     - goprintffuncname
     - gosec
     - gosimple
@@ -88,13 +82,6 @@ linters:
     - unused
     - varcheck
     - whitespace
-
-  # don't enable:
-  # - gochecknoglobals
-  # - gocognit
-  # - godox
-  # - maligned
-  # - prealloc
 
 issues:
   # Excluding configuration per-path, per-linter, per-text and per-source

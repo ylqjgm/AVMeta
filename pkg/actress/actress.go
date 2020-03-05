@@ -2,24 +2,34 @@ package actress
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"path"
+	"path/filepath"
+	"regexp"
 	"strings"
+	"time"
+
+	"github.com/schollz/progressbar/v2"
 
 	"github.com/ylqjgm/AVMeta/pkg/util"
+)
 
-	"github.com/PuerkitoBio/goquery"
+const (
+	// JAVBUS javBUS
+	JAVBUS = "JAVBUS"
+	// JAVDB javDB
+	JAVDB = "JAVDB"
 )
 
 // Actress 头像对象
 type Actress struct {
-	JavBUS string
-	JavDB  string
-	Media  string
-	cfg    *util.ConfigStruct
+	cfg  *util.ConfigStruct
+	emby *Emby
 }
 
 // NewActress 创建对象
-func NewActress(javbus, javdb, media string) *Actress {
+func NewActress() *Actress {
 	// 获取配置信息
 	cfg, err := util.GetConfig()
 	// 检查
@@ -28,147 +38,216 @@ func NewActress(javbus, javdb, media string) *Actress {
 	}
 
 	return &Actress{
-		JavBUS: javbus,
-		JavDB:  javdb,
-		Media:  media,
-		cfg:    cfg,
+		cfg:  cfg,
+		emby: NewEmby(cfg.Media.URL, cfg.Media.API),
 	}
 }
 
-// Search 搜索女优头像
-func (a *Actress) Search(name string) string {
-	// 定义头像变量
-	var actress string
+// Fetch 采集
+func (a *Actress) Fetch(site string, page int, censored bool) {
+	// 定义数据存储map
+	var acts map[string]string
+	// 定义下一页变量
+	var next bool
+	// 定义错误变量
+	var err error
 
-	// 先从javBus搜索
-	actress = a.javBusSearch(name)
+	// 根据不同的站点选择不同的处理方式
+	switch site {
+	case JAVBUS: // javBUS
+		// 采集
+		acts, next, err = JavBUS(a.cfg.Site.JavBus, a.cfg.Base.Proxy, page, censored)
+	case JAVDB: // javDB
+		// 采集
+		acts, next, err = JavDB(a.cfg.Site.JavDB, a.cfg.Base.Proxy, page, censored)
+	default:
+		return
+	}
 	// 检查
-	if actress == "" {
-		// 从javDB搜索
-		actress = a.javDBSearch(name)
+	if err != nil {
+		return
 	}
 
-	return actress
+	// 总量
+	count := len(acts)
+
+	// 初始化进程
+	wg := util.NewWaitGroup(5)
+	// 定义进度条
+	bar := progressbar.NewOptions(count,
+		progressbar.OptionEnableColorCodes(true),
+		progressbar.OptionShowCount(),
+		progressbar.OptionOnCompletion(func() { fmt.Println("") }),
+		progressbar.OptionSetDescription(fmt.Sprintf("第 [blue][%d][reset] 页, [green][%d][reset] 位女优...", page, count)),
+		progressbar.OptionSetTheme(progressbar.Theme{
+			Saucer:        "[cyan]=[reset]",
+			SaucerHead:    "[green]>[reset]",
+			SaucerPadding: " ",
+			BarStart:      "[cyan][[reset]",
+			BarEnd:        "[cyan]][reset]",
+		}),
+	)
+
+	// 循环下载
+	for name, cover := range acts {
+		// 计数加
+		wg.AddDelta()
+		// 调用
+		go a.downProcess(name, cover, wg, bar)
+	}
+
+	// 等待结束
+	wg.Wait()
+
+	// 不管有没有全部下载，均设置为已完成
+	_ = bar.Finish()
+
+	if next {
+		// 采集下一页
+		a.Fetch(site, page+1, censored)
+	}
 }
 
-// Save 保存头像
-func (a *Actress) Save(name string) error {
-	// 保存路径
-	savePath := fmt.Sprintf("%s/actress/%s.jpg", util.GetRunPath(), name)
-	// 检查头像是否已经存在了
-	if util.Exists(savePath) {
+// Put 本地图片入库
+func (a *Actress) Put() {
+	// 获取文件列表
+	files, err := a.walkDir()
+	// 检查
+	if err != nil {
+		log.Printf("获取头像列表失败, 错误信息: %s\n", err)
+		return
+	}
+
+	// 获取总量
+	count := len(files)
+	// 进度条
+	bar := progressbar.NewOptions(count,
+		progressbar.OptionEnableColorCodes(true),
+		progressbar.OptionOnCompletion(func() { fmt.Println("") }),
+		progressbar.OptionSetDescription(fmt.Sprintf("[blue][%d/%d][reset]...", 0, count)),
+		progressbar.OptionSetTheme(progressbar.Theme{
+			Saucer:        "[cyan]=[reset]",
+			SaucerHead:    "[green]>[reset]",
+			SaucerPadding: " ",
+			BarStart:      "[cyan][[reset]",
+			BarEnd:        "[cyan]][reset]",
+		}),
+	)
+
+	// 循环文件
+	for k, f := range files {
+		// 限制速度
+		time.Sleep(300 * time.Millisecond)
+		// 获取后缀
+		ext := path.Ext(f)
+		// 提取女优名称
+		name := strings.TrimRight(path.Base(f), ext)
+
+		bar.Describe(fmt.Sprintf("[cyan][%d/%d][reset]", k+1, count))
+		_ = bar.Set(k + 1)
+
+		// 调用头像上传
+		err = a.emby.Actor(name, f)
+		// 检查
+		if err != nil {
+			continue
+		}
+
+		// 标注成功
+		a.success(f)
+	}
+
+	_ = bar.Finish()
+}
+
+// 下载多进程处理
+func (a *Actress) downProcess(name, cover string, wg *util.WaitGroup, bar *progressbar.ProgressBar) {
+	// 检测是否已存在或入库过
+	if a.exists(name) {
+		wg.Done()
+		_ = bar.Add(1)
+		return
+	}
+	// 获取扩展
+	ext := path.Ext(cover)
+	// 下载图片
+	_ = util.SavePhoto(cover,
+		fmt.Sprintf("./actress/%s.jpg", name),
+		a.cfg.Base.Proxy,
+		!strings.EqualFold(strings.ToLower(ext), ".jpg"))
+
+	wg.Done()
+	_ = bar.Add(1)
+}
+
+// 女优文件是否存在
+func (a *Actress) exists(name string) bool {
+	// 获取文件信息
+	_, err := os.Stat("./actress/" + name + ".jpg")
+	// 检查错误
+	if err == nil {
+		return true
+	}
+	// 是否不存在
+	if os.IsNotExist(err) {
+		return false
+	}
+
+	// 获取文件信息
+	_, err = os.Stat("./actress/success/" + name + ".jpg")
+	// 检查错误
+	if err == nil {
+		return true
+	}
+	// 是否不存在
+	if os.IsNotExist(err) {
+		return false
+	}
+
+	return false
+}
+
+// 遍历头像目录
+func (a *Actress) walkDir() (files []string, err error) {
+	// 遍历目录
+	err = filepath.Walk("./actress", func(filePath string, f os.FileInfo, err error) error {
+		// 错误
+		if f == nil {
+			return err
+		}
+		// 忽略目录
+		if f.IsDir() {
+			return nil
+		}
+
+		// 是否为成功的
+		if strings.EqualFold(path.Base(path.Dir(filePath)), "success") {
+			return nil
+		}
+
+		// 隐藏文件正则
+		rHidden := regexp.MustCompile(`^\.(.)*`)
+		// 检测是否为隐藏文件
+		if rHidden.MatchString(f.Name()) {
+			return nil
+		}
+		// 加入列表
+		files = append(files, filePath)
+
 		return nil
-	}
-
-	// 先搜索到头像
-	actress := a.Search(name)
-	// 检查下
-	if actress == "" {
-		return fmt.Errorf("404 Not Found")
-	}
-
-	// 获取头像后缀
-	ext := path.Ext(actress)
-	// 检查是否需要转换
-	if !strings.EqualFold(strings.ToLower(ext), ".jpg") {
-		return util.SavePhoto(actress, savePath, a.cfg.Base.Proxy, true)
-	}
-
-	return util.SavePhoto(actress, savePath, a.cfg.Base.Proxy, false)
-}
-
-// Stock 头像入库
-func (a *Actress) Stock(name string) error {
-	// 先保存头像
-	if err := a.Save(name); err != nil {
-		return err
-	}
-
-	// 头像路径
-	acctressPath := fmt.Sprintf("%s/actress/%s.jpg", util.GetRunPath(), name)
-
-	// 检查是否配置了api
-	if a.cfg.Media.API == "" || a.cfg.Media.URL == "" {
-		return fmt.Errorf("emby host or emby API can't empty")
-	}
-	// 创建 emby
-	emby := NewEmby(a.cfg.Media.URL, a.cfg.Media.API)
-	// 上传头像
-	return emby.Actor(name, acctressPath)
-}
-
-// 从javDB搜索
-func (a *Actress) javDBSearch(name string) string {
-	// 组合路径
-	uri := fmt.Sprintf("%s/search?q=%s&f=actor", util.CheckDomainPrefix(a.JavDB), name)
-	// 获取节点
-	root, err := util.GetRoot(uri, a.cfg.Base.Proxy, nil)
-	// 检查
-	if err != nil {
-		return ""
-	}
-
-	// 定义头像地址变量
-	var actress string
-
-	// 循环搜索
-	root.Find(`div#actors .actor-box`).Each(func(i int, item *goquery.Selection) {
-		// 获取姓名并检查
-		if title, exist := item.Find(`a`).Attr("title"); exist {
-			// 检查是否正确
-			if strings.EqualFold(strings.TrimSpace(title), name) {
-				// 获取图片并检查
-				if pic, ok := item.Find("span").Attr("style"); ok {
-					// 清除多余
-					pic = strings.TrimSpace(strings.ReplaceAll(strings.ReplaceAll(pic, ")", ""), "background-image: url(", ""))
-					// 检查是否空图片
-					if !strings.EqualFold(pic,
-						"https://javdb4.com/assets/actor_unknow-15f7d779b3d93db42c62be9460b45b79e51f8a944796eee30ed87bbb04de0a37.png") {
-						actress = pic
-					}
-
-					return
-				}
-			}
-		}
 	})
 
-	return actress
+	return
 }
 
-// 从javBus搜索
-func (a *Actress) javBusSearch(name string) string {
-	// 组合路径
-	uri := fmt.Sprintf("%s/searchstar/%s", util.CheckDomainPrefix(a.JavBUS), name)
-	// 获取节点
-	root, err := util.GetRoot(uri, a.cfg.Base.Proxy, nil)
-	// 检查
-	if err != nil {
-		return ""
-	}
-
-	// 定义头像地址变量
-	var actress string
-
-	// 循环搜索
-	root.Find(`div#waterfall .item img`).Each(func(i int, item *goquery.Selection) {
-		// 获取姓名并检查
-		if title, exist := item.Attr("title"); exist {
-			// 检查是否正确
-			if strings.EqualFold(strings.TrimSpace(title), name) {
-				// 获取图片并检查
-				if pic, ok := item.Attr("src"); ok {
-					// 检查是否空图片
-					if !strings.EqualFold(pic,
-						"https://pics.dmm.co.jp/mono/actjpgs/nowprinting.gif") {
-						actress = pic
-
-						return
-					}
-				}
-			}
-		}
-	})
-
-	return actress
+// 标记已入库
+func (a *Actress) success(file string) {
+	// 获取文件名
+	fname := path.Base(file)
+	// 设定success路径
+	successDir := "./actress/success"
+	// 创建success目录
+	_ = os.MkdirAll(successDir, os.ModePerm)
+	// 移动文件
+	_ = os.Rename("./actress/"+fname, successDir+"/"+fname)
 }

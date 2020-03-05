@@ -31,7 +31,7 @@ func Pack(file string, cfg *util.ConfigStruct) (*Media, error) {
 
 	// 是否有图片
 	if m.Cover == "" {
-		return m, fmt.Errorf("没有找到封面图片")
+		return nil, fmt.Errorf("找不到封面")
 	}
 
 	// 获取准确目录

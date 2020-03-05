@@ -5,9 +5,6 @@ const (
 	TOKYOHOT = "東京熱"
 	FC2      = "FC2"
 	HEYZO    = "HEYZO"
-
-	ONE = 1
-	TWO = 2
 )
 
 // 定义变量
