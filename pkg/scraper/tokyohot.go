@@ -1,4 +1,4 @@
-package capture
+package scraper
 
 import (
 	"fmt"
@@ -6,19 +6,26 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ylqjgm/AVMeta/pkg/util"
+
 	"github.com/PuerkitoBio/goquery"
 )
 
-// TokyoHotCapture tokyohot刮削器
-type TokyoHotCapture struct {
+// TokyoHotScraper tokyohot刮削器
+type TokyoHotScraper struct {
 	Proxy  string            // 代理配置
 	uri    string            // 页面地址
 	number string            // 最终番号
 	root   *goquery.Document // 根节点
 }
 
+// NewTokyoHotScraper 创建刮削对象
+func NewTokyoHotScraper(proxy string) *TokyoHotScraper {
+	return &TokyoHotScraper{Proxy: proxy}
+}
+
 // Fetch 刮削
-func (s *TokyoHotCapture) Fetch(code string) error {
+func (s *TokyoHotScraper) Fetch(code string) error {
 	// 设置番号
 	s.number = strings.ToLower(code)
 	// 获取编号
@@ -31,7 +38,7 @@ func (s *TokyoHotCapture) Fetch(code string) error {
 	// 组合地址
 	uri := fmt.Sprintf("https://my.tokyo-hot.com%s?lang=zh-TW", id)
 	// 打开链接
-	root, err := GetRoot(uri, s.Proxy, nil)
+	root, err := util.GetRoot(uri, s.Proxy, nil)
 	// 检查
 	if err != nil {
 		return err
@@ -46,11 +53,11 @@ func (s *TokyoHotCapture) Fetch(code string) error {
 }
 
 // 搜索
-func (s *TokyoHotCapture) search() (id string, err error) {
+func (s *TokyoHotScraper) search() (id string, err error) {
 	// 组合地址
 	uri := fmt.Sprintf("https://my.tokyo-hot.com/product/?q=%s&x=0&y=0&lang=zh-TW", s.number)
 	// 获取节点
-	root, err := GetRoot(uri, s.Proxy, nil)
+	root, err := util.GetRoot(uri, s.Proxy, nil)
 	// 检查错误
 	if err != nil {
 		return
@@ -86,12 +93,12 @@ func (s *TokyoHotCapture) search() (id string, err error) {
 }
 
 // GetTitle 获取名称
-func (s *TokyoHotCapture) GetTitle() string {
+func (s *TokyoHotScraper) GetTitle() string {
 	return s.root.Find(`.pagetitle h2`).Text()
 }
 
 // GetIntro 获取简介
-func (s *TokyoHotCapture) GetIntro() string {
+func (s *TokyoHotScraper) GetIntro() string {
 	// 获取简介
 	intro, err := s.root.Find(`div.sentence`).Html()
 	// 检查错误
@@ -99,21 +106,21 @@ func (s *TokyoHotCapture) GetIntro() string {
 		return ""
 	}
 
-	return IntroFilter(intro)
+	return util.IntroFilter(intro)
 }
 
 // GetDirector 获取导演
-func (s *TokyoHotCapture) GetDirector() string {
-	return TOKYOHOT
+func (s *TokyoHotScraper) GetDirector() string {
+	return util.TOKYOHOT
 }
 
 // GetRelease 发行时间
-func (s *TokyoHotCapture) GetRelease() string {
+func (s *TokyoHotScraper) GetRelease() string {
 	return s.root.Find(`dt:contains("配信開始日")`).Next().Text()
 }
 
 // GetRuntime 获取时长
-func (s *TokyoHotCapture) GetRuntime() string {
+func (s *TokyoHotScraper) GetRuntime() string {
 	// 获取时长
 	strTime := strings.TrimSpace(s.root.Find(`dt:contains("収録時間"`).Next().Text())
 	// 是否正确获取
@@ -143,17 +150,17 @@ func (s *TokyoHotCapture) GetRuntime() string {
 }
 
 // GetStudio 获取厂商
-func (s *TokyoHotCapture) GetStudio() string {
+func (s *TokyoHotScraper) GetStudio() string {
 	return "東京熱"
 }
 
-// GetSerise 获取系列
-func (s *TokyoHotCapture) GetSerise() string {
+// GetSeries 获取系列
+func (s *TokyoHotScraper) GetSeries() string {
 	return s.root.Find(`dt:contains("系列")`).Next().Find("a").Text()
 }
 
 // GetTags 获取标签
-func (s *TokyoHotCapture) GetTags() []string {
+func (s *TokyoHotScraper) GetTags() []string {
 	// 标签数组
 	var tags []string
 	// 循环获取
@@ -164,8 +171,8 @@ func (s *TokyoHotCapture) GetTags() []string {
 	return tags
 }
 
-// GetFanart 获取图片
-func (s *TokyoHotCapture) GetFanart() string {
+// GetCover 获取图片
+func (s *TokyoHotScraper) GetCover() string {
 	// 获取图片
 	fanart, _ := s.root.Find(`.flowplayer video`).Attr("poster")
 
@@ -173,7 +180,7 @@ func (s *TokyoHotCapture) GetFanart() string {
 }
 
 // GetActors 获取演员
-func (s *TokyoHotCapture) GetActors() map[string]string {
+func (s *TokyoHotScraper) GetActors() map[string]string {
 	// 演员数组
 	actors := make(map[string]string)
 
@@ -184,7 +191,7 @@ func (s *TokyoHotCapture) GetActors() map[string]string {
 		// 组合地址
 		uri := fmt.Sprintf("https://my.tokyo-hot.com%s", link)
 		// 打开链接
-		root, err := GetRoot(uri, s.Proxy, nil)
+		root, err := util.GetRoot(uri, s.Proxy, nil)
 		// 检查错误
 		if err != nil {
 			return
@@ -200,11 +207,11 @@ func (s *TokyoHotCapture) GetActors() map[string]string {
 }
 
 // GetURI 获取页面地址
-func (s *TokyoHotCapture) GetURI() string {
+func (s *TokyoHotScraper) GetURI() string {
 	return s.uri
 }
 
 // GetNumber 获取番号
-func (s *TokyoHotCapture) GetNumber() string {
+func (s *TokyoHotScraper) GetNumber() string {
 	return s.number
 }

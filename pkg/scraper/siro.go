@@ -1,4 +1,4 @@
-package capture
+package scraper
 
 import (
 	"fmt"
@@ -6,19 +6,26 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ylqjgm/AVMeta/pkg/util"
+
 	"github.com/PuerkitoBio/goquery"
 )
 
-// SiroCapture siro刮削器
-type SiroCapture struct {
+// SiroScraper siro刮削器
+type SiroScraper struct {
 	Proxy  string            // 代理配置
 	uri    string            // 页面地址
 	number string            // 最终番号
 	root   *goquery.Document // 根节点
 }
 
+// NewSiroScraper 创建刮削对象
+func NewSiroScraper(proxy string) *SiroScraper {
+	return &SiroScraper{Proxy: proxy}
+}
+
 // Fetch 刮削
-func (s *SiroCapture) Fetch(code string) error {
+func (s *SiroScraper) Fetch(code string) error {
 	// 设置番号
 	s.number = strings.ToUpper(code)
 	// 定义Cookies
@@ -29,12 +36,12 @@ func (s *SiroCapture) Fetch(code string) error {
 		Value:   "1",
 		Path:    "/",
 		Domain:  "mgstage.com",
-		Expires: time.Now().Add(ONE * time.Hour),
+		Expires: time.Now().Add(util.ONE * time.Hour),
 	})
 	// 组合地址
 	uri := fmt.Sprintf("https://www.mgstage.com/product/product_detail/%s/", s.number)
 	// 打开链接
-	root, err := GetRoot(uri, s.Proxy, cookies)
+	root, err := util.GetRoot(uri, s.Proxy, cookies)
 	// 检查
 	if err != nil {
 		return err
@@ -49,42 +56,42 @@ func (s *SiroCapture) Fetch(code string) error {
 }
 
 // GetTitle 获取名称
-func (s *SiroCapture) GetTitle() string {
+func (s *SiroScraper) GetTitle() string {
 	return s.root.Find(`h1.tag`).Text()
 }
 
 // GetIntro 获取简介
-func (s *SiroCapture) GetIntro() string {
-	return IntroFilter(s.root.Find(`#introduction p.introduction`).Text())
+func (s *SiroScraper) GetIntro() string {
+	return util.IntroFilter(s.root.Find(`#introduction p.introduction`).Text())
 }
 
 // GetDirector 获取导演
-func (s *SiroCapture) GetDirector() string {
+func (s *SiroScraper) GetDirector() string {
 	return ""
 }
 
 // GetRelease 发行时间
-func (s *SiroCapture) GetRelease() string {
+func (s *SiroScraper) GetRelease() string {
 	return s.root.Filter(`th:contains("配信開始日")`).Next().Text()
 }
 
 // GetRuntime 获取时长
-func (s *SiroCapture) GetRuntime() string {
+func (s *SiroScraper) GetRuntime() string {
 	return strings.TrimRight(s.root.Find(`th:contains("収録時間")`).Next().Text(), "min")
 }
 
 // GetStudio 获取厂商
-func (s *SiroCapture) GetStudio() string {
+func (s *SiroScraper) GetStudio() string {
 	return s.root.Find(`th:contains("メーカー")`).Next().Text()
 }
 
-// GetSerise 获取系列
-func (s *SiroCapture) GetSerise() string {
+// GetSeries 获取系列
+func (s *SiroScraper) GetSeries() string {
 	return s.root.Find(`th:contains("シリーズ")`).Next().Text()
 }
 
 // GetTags 获取标签
-func (s *SiroCapture) GetTags() []string {
+func (s *SiroScraper) GetTags() []string {
 	// 标签数组
 	var tags []string
 	// 循环获取
@@ -95,8 +102,8 @@ func (s *SiroCapture) GetTags() []string {
 	return tags
 }
 
-// GetFanart 获取图片
-func (s *SiroCapture) GetFanart() string {
+// GetCover 获取图片
+func (s *SiroScraper) GetCover() string {
 	// 获取图片
 	fanart, _ := s.root.Find(`#EnlargeImage`).Attr("href")
 
@@ -104,7 +111,7 @@ func (s *SiroCapture) GetFanart() string {
 }
 
 // GetActors 获取演员
-func (s *SiroCapture) GetActors() map[string]string {
+func (s *SiroScraper) GetActors() map[string]string {
 	// 演员数组
 	actors := make(map[string]string)
 
@@ -115,7 +122,7 @@ func (s *SiroCapture) GetActors() map[string]string {
 	})
 
 	// 是否获取到
-	if len(actors) <= ZERO {
+	if len(actors) == 0 {
 		// 重新获取
 		name := s.root.Find(`th:contains("出演")`).Next().Text()
 		// 获取演员名字
@@ -126,11 +133,11 @@ func (s *SiroCapture) GetActors() map[string]string {
 }
 
 // GetURI 获取页面地址
-func (s *SiroCapture) GetURI() string {
+func (s *SiroScraper) GetURI() string {
 	return s.uri
 }
 
 // GetNumber 获取番号
-func (s *SiroCapture) GetNumber() string {
+func (s *SiroScraper) GetNumber() string {
 	return s.number
 }

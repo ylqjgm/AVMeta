@@ -1,4 +1,4 @@
-package capture
+package scraper
 
 import (
 	"encoding/json"
@@ -8,11 +8,13 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ylqjgm/AVMeta/pkg/util"
+
 	"github.com/PuerkitoBio/goquery"
 )
 
-// HeyzoCapture heyzo刮削器
-type HeyzoCapture struct {
+// HeyzoScraper heyzo刮削器
+type HeyzoScraper struct {
 	Proxy  string            // 代理配置
 	uri    string            // 页面地址
 	code   string            // 临时番号
@@ -35,8 +37,13 @@ type heyzoJSON struct {
 	} `json:"aggregateRating"`
 }
 
+// NewHeyzoScraper 创建刮削对象
+func NewHeyzoScraper(proxy string) *HeyzoScraper {
+	return &HeyzoScraper{Proxy: proxy}
+}
+
 // Fetch 刮削
-func (s *HeyzoCapture) Fetch(code string) error {
+func (s *HeyzoScraper) Fetch(code string) error {
 	// 设置番号
 	s.number = strings.ToUpper(code)
 	// 番号正则
@@ -46,7 +53,7 @@ func (s *HeyzoCapture) Fetch(code string) error {
 	// 组合地址
 	uri := fmt.Sprintf("https://www.heyzo.com/moviepages/%s/index.html", s.code)
 	// 打开连接
-	root, err := GetRoot(uri, s.Proxy, nil)
+	root, err := util.GetRoot(uri, s.Proxy, nil)
 	// 检查
 	if err != nil {
 		return err
@@ -80,27 +87,27 @@ func (s *HeyzoCapture) Fetch(code string) error {
 }
 
 // GetTitle 获取名称
-func (s *HeyzoCapture) GetTitle() string {
+func (s *HeyzoScraper) GetTitle() string {
 	return s.json.Name
 }
 
 // GetIntro 获取简介
-func (s *HeyzoCapture) GetIntro() string {
-	return IntroFilter(s.root.Find(`p[class="memo"]`).Text())
+func (s *HeyzoScraper) GetIntro() string {
+	return util.IntroFilter(s.root.Find(`p[class="memo"]`).Text())
 }
 
 // GetDirector 获取导演
-func (s *HeyzoCapture) GetDirector() string {
-	return HEYZO
+func (s *HeyzoScraper) GetDirector() string {
+	return util.HEYZO
 }
 
 // GetRelease 发行时间
-func (s *HeyzoCapture) GetRelease() string {
+func (s *HeyzoScraper) GetRelease() string {
 	return s.json.DateCreated
 }
 
 // GetRuntime 获取时长
-func (s *HeyzoCapture) GetRuntime() string {
+func (s *HeyzoScraper) GetRuntime() string {
 	// 获取时长
 	duration := s.json.Duration
 	// 时长搜索正则
@@ -124,17 +131,17 @@ func (s *HeyzoCapture) GetRuntime() string {
 }
 
 // GetStudio 获取厂商
-func (s *HeyzoCapture) GetStudio() string {
+func (s *HeyzoScraper) GetStudio() string {
 	return "HEYZO"
 }
 
-// GetSerise 获取系列
-func (s *HeyzoCapture) GetSerise() string {
+// GetSeries 获取系列
+func (s *HeyzoScraper) GetSeries() string {
 	return s.root.Find(`.table-series a`).Text()
 }
 
 // GetTags 获取标签
-func (s *HeyzoCapture) GetTags() []string {
+func (s *HeyzoScraper) GetTags() []string {
 	// 标签数组
 	var tags []string
 	// 循环获取
@@ -145,13 +152,13 @@ func (s *HeyzoCapture) GetTags() []string {
 	return tags
 }
 
-// GetFanart 获取图片
-func (s *HeyzoCapture) GetFanart() string {
+// GetCover 获取图片
+func (s *HeyzoScraper) GetCover() string {
 	return "https:" + s.json.Image
 }
 
 // GetActors 获取演员
-func (s *HeyzoCapture) GetActors() map[string]string {
+func (s *HeyzoScraper) GetActors() map[string]string {
 	// 演员数组
 	actors := make(map[string]string)
 
@@ -165,11 +172,11 @@ func (s *HeyzoCapture) GetActors() map[string]string {
 }
 
 // GetURI 获取页面地址
-func (s *HeyzoCapture) GetURI() string {
+func (s *HeyzoScraper) GetURI() string {
 	return s.uri
 }
 
 // GetNumber 获取番号
-func (s *HeyzoCapture) GetNumber() string {
+func (s *HeyzoScraper) GetNumber() string {
 	return s.number
 }

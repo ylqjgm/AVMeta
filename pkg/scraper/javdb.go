@@ -1,14 +1,16 @@
-package capture
+package scraper
 
 import (
 	"fmt"
 	"strings"
 
+	"github.com/ylqjgm/AVMeta/pkg/util"
+
 	"github.com/PuerkitoBio/goquery"
 )
 
-// JavDBCapture javdb刮削器
-type JavDBCapture struct {
+// JavDBScraper javdb刮削器
+type JavDBScraper struct {
 	Site   string            // 免翻地址
 	Proxy  string            // 代理配置
 	uri    string            // 页面地址
@@ -16,8 +18,13 @@ type JavDBCapture struct {
 	root   *goquery.Document // 根节点
 }
 
+// NewJavDBScraper 创建刮削对象
+func NewJavDBScraper(site, proxy string) *JavDBScraper {
+	return &JavDBScraper{Site: site, Proxy: proxy}
+}
+
 // Fetch 刮削
-func (s *JavDBCapture) Fetch(code string) error {
+func (s *JavDBScraper) Fetch(code string) error {
 	// 设置番号
 	s.number = strings.ToUpper(code)
 	// 搜索
@@ -28,10 +35,10 @@ func (s *JavDBCapture) Fetch(code string) error {
 	}
 
 	// 组合地址
-	uri := fmt.Sprintf("%s%s", CheckDomainPrefix(s.Site), id)
+	uri := fmt.Sprintf("%s%s", util.CheckDomainPrefix(s.Site), id)
 
 	// 打开连接
-	root, err := GetRoot(uri, s.Proxy, nil)
+	root, err := util.GetRoot(uri, s.Proxy, nil)
 	// 检查错误
 	if err != nil {
 		return err
@@ -46,12 +53,12 @@ func (s *JavDBCapture) Fetch(code string) error {
 }
 
 // 搜索影片
-func (s *JavDBCapture) search() (string, error) {
+func (s *JavDBScraper) search() (string, error) {
 	// 组合地址
-	uri := fmt.Sprintf("%s/search?q=%s&f=all", CheckDomainPrefix(s.Site), strings.ToUpper(s.number))
+	uri := fmt.Sprintf("%s/search?q=%s&f=all", util.CheckDomainPrefix(s.Site), strings.ToUpper(s.number))
 
 	// 打开地址
-	root, err := GetRoot(uri, s.Proxy, nil)
+	root, err := util.GetRoot(uri, s.Proxy, nil)
 	// 检查错误
 	if err != nil {
 		return "", err
@@ -90,17 +97,17 @@ func (s *JavDBCapture) search() (string, error) {
 }
 
 // GetTitle 获取名称
-func (s *JavDBCapture) GetTitle() string {
+func (s *JavDBScraper) GetTitle() string {
 	return strings.ReplaceAll(s.root.Find(`title`).Text(), "| JavDB 成人影片資料庫", "")
 }
 
 // GetIntro 获取简介
-func (s *JavDBCapture) GetIntro() string {
+func (s *JavDBScraper) GetIntro() string {
 	return GetDmmIntro(s.number, s.Proxy)
 }
 
 // GetDirector 获取导演
-func (s *JavDBCapture) GetDirector() string {
+func (s *JavDBScraper) GetDirector() string {
 	// 获取数据
 	val := s.root.Find(`strong:contains("導演")`).Parent().NextFiltered(`span.value`).Text()
 	// 检查
@@ -112,7 +119,7 @@ func (s *JavDBCapture) GetDirector() string {
 }
 
 // GetRelease 发行时间
-func (s *JavDBCapture) GetRelease() string {
+func (s *JavDBScraper) GetRelease() string {
 	// 获取数据
 	val := s.root.Find(`strong:contains("時間")`).Parent().NextFiltered(`span.value`).Text()
 	// 检查
@@ -124,7 +131,7 @@ func (s *JavDBCapture) GetRelease() string {
 }
 
 // GetRuntime 获取时长
-func (s *JavDBCapture) GetRuntime() string {
+func (s *JavDBScraper) GetRuntime() string {
 	// 获取数据
 	val := s.root.Find(`strong:contains("時長")`).Parent().NextFiltered(`span.value`).Text()
 	// 检查
@@ -139,7 +146,7 @@ func (s *JavDBCapture) GetRuntime() string {
 }
 
 // GetStudio 获取厂商
-func (s *JavDBCapture) GetStudio() string {
+func (s *JavDBScraper) GetStudio() string {
 	// 获取数据
 	val := s.root.Find(`strong:contains("片商")`).Parent().NextFiltered(`span.value`).Text()
 	// 检查
@@ -150,8 +157,8 @@ func (s *JavDBCapture) GetStudio() string {
 	return val
 }
 
-// GetSerise 获取系列
-func (s *JavDBCapture) GetSerise() string {
+// GetSeries 获取系列
+func (s *JavDBScraper) GetSeries() string {
 	// 获取数据
 	val := s.root.Find(`strong:contains("系列")`).Parent().NextFiltered(`span.value`).Text()
 	// 检查
@@ -163,7 +170,7 @@ func (s *JavDBCapture) GetSerise() string {
 }
 
 // GetTags 获取标签
-func (s *JavDBCapture) GetTags() []string {
+func (s *JavDBScraper) GetTags() []string {
 	// 类别数组
 	var tags []string
 	// 循环获取
@@ -174,8 +181,8 @@ func (s *JavDBCapture) GetTags() []string {
 	return tags
 }
 
-// GetFanart 获取图片
-func (s *JavDBCapture) GetFanart() string {
+// GetCover 获取图片
+func (s *JavDBScraper) GetCover() string {
 	// 获取图片
 	fanart, _ := s.root.Find(`div.column-video-cover a img`).Attr("src")
 
@@ -183,7 +190,7 @@ func (s *JavDBCapture) GetFanart() string {
 }
 
 // GetActors 获取演员
-func (s *JavDBCapture) GetActors() map[string]string {
+func (s *JavDBScraper) GetActors() map[string]string {
 	// 演员列表
 	actors := make(map[string]string)
 
@@ -197,11 +204,11 @@ func (s *JavDBCapture) GetActors() map[string]string {
 }
 
 // GetURI 获取页面地址
-func (s *JavDBCapture) GetURI() string {
+func (s *JavDBScraper) GetURI() string {
 	return s.uri
 }
 
 // GetNumber 获取番号
-func (s *JavDBCapture) GetNumber() string {
+func (s *JavDBScraper) GetNumber() string {
 	return s.number
 }

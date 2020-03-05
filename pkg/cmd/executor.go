@@ -28,6 +28,7 @@ func NewExecutor(version, commit, built string) *Executor {
 		platform:  fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
 	}
 	e.initRoot()
+	e.setTemplate()
 	e.initVersion()
 
 	return e

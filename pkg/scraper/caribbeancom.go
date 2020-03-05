@@ -1,4 +1,4 @@
-package capture
+package scraper
 
 import (
 	"bytes"
@@ -7,22 +7,29 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ylqjgm/AVMeta/pkg/util"
+
 	"golang.org/x/text/encoding/japanese"
 	"golang.org/x/text/transform"
 
 	"github.com/PuerkitoBio/goquery"
 )
 
-// CaribBeanComCapture 加勒比刮削器
-type CaribBeanComCapture struct {
+// CaribBeanComScraper 加勒比刮削器
+type CaribBeanComScraper struct {
 	Proxy  string            // 代理配置
 	uri    string            // 页面地址
 	number string            // 最终番号
 	root   *goquery.Document // 根节点
 }
 
+// NewCaribBeanComScraper 初始化刮削对象
+func NewCaribBeanComScraper(proxy string) *CaribBeanComScraper {
+	return &CaribBeanComScraper{Proxy: proxy}
+}
+
 // Fetch 刮削
-func (s *CaribBeanComCapture) Fetch(code string) error {
+func (s *CaribBeanComScraper) Fetch(code string) error {
 	// 设置番号
 	s.number = strings.ToUpper(code)
 
@@ -30,7 +37,7 @@ func (s *CaribBeanComCapture) Fetch(code string) error {
 	uri := fmt.Sprintf("https://www.caribbeancom.com/moviepages/%s/index.html", code)
 
 	// 打开远程连接
-	data, err := GetResult(uri, s.Proxy, nil)
+	data, err := util.GetResult(uri, s.Proxy, nil)
 	// 检查
 	if err != nil {
 		return err
@@ -55,12 +62,12 @@ func (s *CaribBeanComCapture) Fetch(code string) error {
 }
 
 // GetTitle 获取名称
-func (s *CaribBeanComCapture) GetTitle() string {
+func (s *CaribBeanComScraper) GetTitle() string {
 	return s.root.Find(`h1[itemprop="name"]`).Text()
 }
 
 // GetIntro 获取简介
-func (s *CaribBeanComCapture) GetIntro() string {
+func (s *CaribBeanComScraper) GetIntro() string {
 	// 获取简介
 	intro, err := s.root.Find(`p[itemprop="description"]`).Html()
 	// 检查
@@ -68,21 +75,21 @@ func (s *CaribBeanComCapture) GetIntro() string {
 		return ""
 	}
 
-	return IntroFilter(intro)
+	return util.IntroFilter(intro)
 }
 
 // GetDirector 获取导演
-func (s *CaribBeanComCapture) GetDirector() string {
+func (s *CaribBeanComScraper) GetDirector() string {
 	return ""
 }
 
 // GetRelease 发行时间
-func (s *CaribBeanComCapture) GetRelease() string {
+func (s *CaribBeanComScraper) GetRelease() string {
 	return s.root.Find(`span[itemprop="uploadDate"]`).Text()
 }
 
 // GetRuntime 获取时长
-func (s *CaribBeanComCapture) GetRuntime() string {
+func (s *CaribBeanComScraper) GetRuntime() string {
 	// 获取数据
 	strTime := strings.TrimSpace(s.root.Find(`span[itemprop="duration"]`).Text())
 
@@ -113,17 +120,17 @@ func (s *CaribBeanComCapture) GetRuntime() string {
 }
 
 // GetStudio 获取厂商
-func (s *CaribBeanComCapture) GetStudio() string {
+func (s *CaribBeanComScraper) GetStudio() string {
 	return "カリビアンコム"
 }
 
-// GetSerise 获取系列
-func (s *CaribBeanComCapture) GetSerise() string {
+// GetSeries 获取系列
+func (s *CaribBeanComScraper) GetSeries() string {
 	return s.root.Find(`a[href*="/series/"]`).Text()
 }
 
 // GetTags 获取标签
-func (s *CaribBeanComCapture) GetTags() []string {
+func (s *CaribBeanComScraper) GetTags() []string {
 	// 类别数组
 	var tags []string
 	// 循环获取
@@ -134,13 +141,13 @@ func (s *CaribBeanComCapture) GetTags() []string {
 	return tags
 }
 
-// GetFanart 获取图片
-func (s *CaribBeanComCapture) GetFanart() string {
+// GetCover 获取图片
+func (s *CaribBeanComScraper) GetCover() string {
 	return fmt.Sprintf("https://www.caribbeancom.com/moviepages/%s/images/l_l.jpg", s.number)
 }
 
 // GetActors 获取演员
-func (s *CaribBeanComCapture) GetActors() map[string]string {
+func (s *CaribBeanComScraper) GetActors() map[string]string {
 	// 演员列表
 	actors := make(map[string]string)
 
@@ -154,11 +161,11 @@ func (s *CaribBeanComCapture) GetActors() map[string]string {
 }
 
 // GetURI 获取页面地址
-func (s *CaribBeanComCapture) GetURI() string {
+func (s *CaribBeanComScraper) GetURI() string {
 	return s.uri
 }
 
 // GetNumber 获取番号
-func (s *CaribBeanComCapture) GetNumber() string {
+func (s *CaribBeanComScraper) GetNumber() string {
 	return s.number
 }

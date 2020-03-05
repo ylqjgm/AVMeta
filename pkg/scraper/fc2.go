@@ -1,4 +1,4 @@
-package capture
+package scraper
 
 import (
 	"bytes"
@@ -8,11 +8,13 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/ylqjgm/AVMeta/pkg/util"
+
 	"github.com/PuerkitoBio/goquery"
 )
 
-// FC2Capture fc2刮削器
-type FC2Capture struct {
+// FC2Scraper fc2刮削器
+type FC2Scraper struct {
 	Proxy       string            // 代理设置
 	uri         string            // 页面地址
 	code        string            // 临时番号
@@ -31,8 +33,13 @@ type fc2tag struct {
 	Tag string `json:"tag"`
 }
 
+// NewFC2Scraper 创建刮削对象
+func NewFC2Scraper(proxy string) *FC2Scraper {
+	return &FC2Scraper{Proxy: proxy}
+}
+
 // Fetch 刮削
-func (s *FC2Capture) Fetch(code string) error {
+func (s *FC2Scraper) Fetch(code string) error {
 	// 设置番号
 	s.number = strings.ToUpper(code)
 	// 过滤番号
@@ -45,14 +52,14 @@ func (s *FC2Capture) Fetch(code string) error {
 	fc2cluburi := fmt.Sprintf("https://fc2club.com/html/FC2-%s.html", s.code)
 
 	// 打开fc2
-	fc2Root, err := GetRoot(fc2uri, s.Proxy, nil)
+	fc2Root, err := util.GetRoot(fc2uri, s.Proxy, nil)
 	// 检查错误
 	if err != nil {
 		return err
 	}
 
 	// 打开fc2club
-	fc2clubRoot, err := GetRoot(fc2cluburi, s.Proxy, nil)
+	fc2clubRoot, err := util.GetRoot(fc2cluburi, s.Proxy, nil)
 	// 检查错误
 	if err != nil {
 		return err
@@ -69,7 +76,7 @@ func (s *FC2Capture) Fetch(code string) error {
 }
 
 // GetTitle 获取名称
-func (s *FC2Capture) GetTitle() string {
+func (s *FC2Scraper) GetTitle() string {
 	// 获取标题
 	title := s.fc2Root.Find(`.items_article_headerInfo h3`).Text()
 	// 检查
@@ -81,12 +88,12 @@ func (s *FC2Capture) GetTitle() string {
 }
 
 // GetIntro 获取简介
-func (s *FC2Capture) GetIntro() string {
+func (s *FC2Scraper) GetIntro() string {
 	return ""
 }
 
 // GetDirector 获取导演
-func (s *FC2Capture) GetDirector() string {
+func (s *FC2Scraper) GetDirector() string {
 	// 获取导演
 	director := s.fc2Root.Find(`.items_article_headerInfo li:nth-child(3) a`).Text()
 	// 检查
@@ -98,32 +105,32 @@ func (s *FC2Capture) GetDirector() string {
 }
 
 // GetRelease 发行时间
-func (s *FC2Capture) GetRelease() string {
+func (s *FC2Scraper) GetRelease() string {
 	return strings.ReplaceAll(strings.ReplaceAll(s.fc2Root.Find(`.items_article_Releasedate p`).Text(), "上架时间 :", ""), "販売日 :", "")
 }
 
 // GetRuntime 获取时长
-func (s *FC2Capture) GetRuntime() string {
+func (s *FC2Scraper) GetRuntime() string {
 	return "0"
 }
 
 // GetStudio 获取厂商
-func (s *FC2Capture) GetStudio() string {
-	return FC2
+func (s *FC2Scraper) GetStudio() string {
+	return util.FC2
 }
 
-// GetSerise 获取系列
-func (s *FC2Capture) GetSerise() string {
-	return FC2
+// GetSeries 获取系列
+func (s *FC2Scraper) GetSeries() string {
+	return util.FC2
 }
 
 // GetTags 获取标签
-func (s *FC2Capture) GetTags() []string {
+func (s *FC2Scraper) GetTags() []string {
 	// 组合地址
 	uri := fmt.Sprintf("http://adult.contents.fc2.com/api/v4/article/%s/tag?", s.code)
 
 	// 读取远程数据
-	data, err := GetResult(uri, s.Proxy, nil)
+	data, err := util.GetResult(uri, s.Proxy, nil)
 	// 检查
 	if err != nil {
 		return nil
@@ -157,8 +164,8 @@ func (s *FC2Capture) GetTags() []string {
 	return tags
 }
 
-// GetFanart 获取图片
-func (s *FC2Capture) GetFanart() string {
+// GetCover 获取图片
+func (s *FC2Scraper) GetCover() string {
 	// 获取图片
 	fanart, _ := s.fc2clubRoot.Find(`.slides li:nth-child(1) img`).Attr("src")
 	// 检查
@@ -170,16 +177,16 @@ func (s *FC2Capture) GetFanart() string {
 }
 
 // GetActors 获取演员
-func (s *FC2Capture) GetActors() map[string]string {
+func (s *FC2Scraper) GetActors() map[string]string {
 	return nil
 }
 
 // GetURI 获取页面地址
-func (s *FC2Capture) GetURI() string {
+func (s *FC2Scraper) GetURI() string {
 	return s.uri
 }
 
 // GetNumber 获取番号
-func (s *FC2Capture) GetNumber() string {
+func (s *FC2Scraper) GetNumber() string {
 	return s.number
 }

@@ -1,14 +1,9 @@
-package capture
+package util
 
 import (
 	"bytes"
-	/* #nosec */
-	"crypto/md5"
 	"crypto/tls"
-	"encoding/hex"
 	"fmt"
-	"image"
-	"image/jpeg"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -21,139 +16,6 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 )
-
-const (
-	// HEYZO 常量
-	HEYZO = "HEYZO"
-	// TOKYOHOT 常量
-	TOKYOHOT = "東京熱"
-	// FC2 常量
-	FC2 = "FC2"
-
-	// ZERO 数字0
-	ZERO = 0
-	// ONE 数字1
-	ONE = 1
-	// TWO 数字2
-	TWO = 2
-)
-
-// ICapture 刮削器接口
-type ICapture interface {
-	// Fetch 获取数据
-	Fetch(code string) error
-
-	// GetURI 获取来源页面地址
-	GetURI() string
-
-	// GetNumber 获取刮削番号
-	GetNumber() string
-
-	// GetTitle 获取影片名称
-	GetTitle() string
-	// GetIntro 获取影片简介
-	GetIntro() string
-	// GetDirector 获取影片导演
-	GetDirector() string
-	// GetRelease 获取发行时间
-	GetRelease() string
-	// GetRuntime 获取影片时长
-	GetRuntime() string
-	// GetStudio 获取影片厂商
-	GetStudio() string
-	// GetSerise 获取影片系列
-	GetSerise() string
-	// GetTags 获取标签列表
-	GetTags() []string
-	// GetCover 获取封面图片
-	GetCover() string
-	// GetActors 获取演员列表
-	GetActors() map[string]string
-}
-
-// MD5Verify md5验证
-func MD5Verify(data []byte, source string) bool {
-	/* #nosec */
-	ret := md5.Sum(data)
-	// 获取加密字符串
-	md5Str := hex.EncodeToString(ret[:])
-
-	// 返回比较结果
-	return source == md5Str
-}
-
-// CheckDomainPrefix 检查域名最后的斜线
-func CheckDomainPrefix(domain string) string {
-	// 是否为空
-	if domain == "" {
-		return ""
-	}
-
-	// 获取最后一个字符
-	last := domain[len(domain)-1:]
-	// 如果是斜线
-	if last == "/" {
-		domain = domain[:len(domain)-1]
-	}
-
-	return domain
-}
-
-// IntroFilter 过滤简介
-func IntroFilter(intro string) string {
-	// 替换<br>
-	intro = strings.ReplaceAll(intro, "<br>", "\n")
-	intro = strings.ReplaceAll(intro, "<br/>", "\n")
-	intro = strings.ReplaceAll(intro, "<br />", "\n")
-	// 替换\r\n
-	intro = strings.ReplaceAll(intro, "\r\n", "\n")
-	// 替换\r
-	intro = strings.ReplaceAll(intro, "\r", "\n")
-	// 替换\n\n
-	intro = strings.ReplaceAll(intro, "\n\n", "\n")
-
-	// 清除多余空白
-	return strings.TrimSpace(intro)
-}
-
-// ConvertJPG 转换图片为jpg格式
-func ConvertJPG(sourceFile, newFile string) error {
-	// 打开原文件
-	f, err := os.Open(sourceFile)
-	// 检查错误
-	if err != nil {
-		return err
-	}
-	// 关闭连接
-	defer f.Close()
-
-	// 图片解码
-	src, _, err := image.Decode(f)
-	// 检查错误
-	if err != nil {
-		return err
-	}
-
-	// 获取图片信息
-	b := src.Bounds()
-
-	// YCBCr
-	img := src.(interface {
-		SubImage(r image.Rectangle) image.Image
-	}).SubImage(image.Rect(0, 0, b.Max.X, b.Max.Y))
-
-	// 新建并打开新图片
-	cf, err := os.OpenFile(newFile, os.O_SYNC|os.O_RDWR|os.O_CREATE, 0666)
-	// 检查错误
-	if err != nil {
-		return err
-	}
-	// 关闭
-	defer cf.Close()
-
-	// 图片编码
-	return jpeg.Encode(cf, img, &jpeg.Options{Quality: 100})
-}
 
 // MakeRequest 发起请求
 func MakeRequest(
@@ -235,7 +97,7 @@ func GetRoot(uri, proxy string, cookies []*http.Cookie) (*goquery.Document, erro
 }
 
 // SavePhoto 远程图片下载
-func SavePhoto(uri, savePath, proxy string) error {
+func SavePhoto(uri, savePath, proxy string, needConvert bool) error {
 	// 创建路径
 	err := os.MkdirAll(filepath.Dir(savePath), os.ModePerm)
 	// 检查错误
@@ -257,13 +119,27 @@ func SavePhoto(uri, savePath, proxy string) error {
 		return fmt.Errorf("远程图片不完整或小于1KB")
 	}
 
-	// 进行MD5验证
-	if MD5Verify(body, "f591f3826a1085af5cdeeca250b2c97a") {
-		return fmt.Errorf("远程图片为空图片或错误图片")
+	// 保存到本地
+	err = saveFile(savePath, body, length)
+	// 检查错误
+	if err != nil {
+		return err
 	}
 
-	// 保存到本地
-	return saveFile(savePath, body, length)
+	// 是否需要转换
+	if needConvert {
+		// 转换为jpg
+		err = ConvertJPG(savePath, fmt.Sprintf("%s.jpg", strings.TrimRight(path.Base(savePath), path.Ext(savePath))))
+		// 检查
+		if err != nil {
+			return err
+		}
+
+		// 删除源文件
+		return os.Remove(savePath)
+	}
+
+	return nil
 }
 
 // 创建http客户端
@@ -345,15 +221,8 @@ func saveFile(savePath string, data []byte, length int64) error {
 	// 关闭连接
 	_ = f.Close()
 
-	// 获取文件信息
-	info, err := os.Stat(savePath)
-	// 检查错误
-	if err != nil {
-		return err
-	}
-
 	// 获取文件大小
-	local := info.Size()
+	local := GetFileSize(savePath)
 
 	// 检查文件一致性
 	if length != local {

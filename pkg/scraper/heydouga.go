@@ -1,4 +1,4 @@
-package capture
+package scraper
 
 import (
 	"bytes"
@@ -8,11 +8,13 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/ylqjgm/AVMeta/pkg/util"
+
 	"github.com/PuerkitoBio/goquery"
 )
 
-// HeydougaCapture heydouga刮削器
-type HeydougaCapture struct {
+// HeydougaScraper heydouga刮削器
+type HeydougaScraper struct {
 	Proxy  string            // 代理配置
 	uri    string            // 页面地址
 	data   string            // 页面数据
@@ -33,8 +35,13 @@ type heydougaTag struct {
 	TagName string `json:"tag_name"`
 }
 
+// NewHeydougaScraper 创建刮削对象
+func NewHeydougaScraper(proxy string) *HeydougaScraper {
+	return &HeydougaScraper{Proxy: proxy}
+}
+
 // Fetch 刮削
-func (s *HeydougaCapture) Fetch(code string) error {
+func (s *HeydougaScraper) Fetch(code string) error {
 	// 设置临时番号
 	s.code = code
 	// 转换大写
@@ -48,12 +55,10 @@ func (s *HeydougaCapture) Fetch(code string) error {
 		return fmt.Errorf("找不到番号")
 	}
 
-	// 配置番号
-	code = r.FindString(code)
 	// 番号分割
 	cs := strings.Split(code, "-")
 	// 检查是否有两个
-	if len(cs) >= TWO {
+	if len(cs) < util.TWO {
 		return fmt.Errorf("找不到番号")
 	}
 
@@ -63,7 +68,7 @@ func (s *HeydougaCapture) Fetch(code string) error {
 	// 组合地址
 	uri := fmt.Sprintf("https://www.heydouga.com/moviepages/%s/%s/index.html", s.code1, s.code2)
 	// 打开连接
-	data, status, err := MakeRequest("GET", uri, s.Proxy, nil, nil, nil)
+	data, status, err := util.MakeRequest("GET", uri, s.Proxy, nil, nil, nil)
 	// 检查
 	if err != nil || http.StatusNotFound == status {
 		// 设置番号前后缀
@@ -72,7 +77,7 @@ func (s *HeydougaCapture) Fetch(code string) error {
 		// 重新组合地址
 		uri = fmt.Sprintf("https://www.heydouga.com/moviepages/%s/%s/index.html", s.code1, s.code2)
 		// 打开链接
-		data, status, err = MakeRequest("GET", uri, s.Proxy, nil, nil, nil)
+		data, status, err = util.MakeRequest("GET", uri, s.Proxy, nil, nil, nil)
 		// 检查
 		if err != nil || http.StatusNotFound == status {
 			return err
@@ -99,46 +104,44 @@ func (s *HeydougaCapture) Fetch(code string) error {
 }
 
 // GetTitle 获取名称
-func (s *HeydougaCapture) GetTitle() string {
+func (s *HeydougaScraper) GetTitle() string {
 	return s.root.Find(`div#title-bg h1`).Text()
 }
 
 // GetIntro 获取简介
-func (s *HeydougaCapture) GetIntro() string {
-	return IntroFilter(s.root.Find(`div[class="movie-description"] p`).Text())
+func (s *HeydougaScraper) GetIntro() string {
+	return util.IntroFilter(s.root.Find(`div[class="movie-description"] p`).Text())
 }
 
 // GetDirector 获取导演
-func (s *HeydougaCapture) GetDirector() string {
+func (s *HeydougaScraper) GetDirector() string {
 	return s.root.Find(`span:contains("提供元")`).Next().Find(`a[href*="/listpages/provider"]`).Text()
 }
 
 // GetRelease 发行时间
-func (s *HeydougaCapture) GetRelease() string {
+func (s *HeydougaScraper) GetRelease() string {
 	return s.root.Find(`span:contains("配信日")`).Next().Text()
 }
 
 // GetRuntime 获取时长
-func (s *HeydougaCapture) GetRuntime() string {
+func (s *HeydougaScraper) GetRuntime() string {
 	return strings.ReplaceAll(s.root.Find(`span:contains("動画再生時間")`).Next().Text(), "分", "")
 }
 
 // GetStudio 获取厂商
-func (s *HeydougaCapture) GetStudio() string {
+func (s *HeydougaScraper) GetStudio() string {
 	return "Hey動画"
 }
 
-// GetSerise 获取系列
-func (s *HeydougaCapture) GetSerise() string {
+// GetSeries 获取系列
+func (s *HeydougaScraper) GetSeries() string {
 	return "Hey動画 PPV"
 }
 
 // GetTags 获取标签
-func (s *HeydougaCapture) GetTags() []string {
+func (s *HeydougaScraper) GetTags() []string {
 	// movie_seq正则表达式
 	r := regexp.MustCompile(`movie_seq:([0-9]+)`)
-	mm := r.FindString(s.data)
-	fmt.Println(mm)
 	// 搜索movie_seq
 	m := strings.TrimSpace(strings.ReplaceAll(r.FindString(s.data), "movie_seq:", ""))
 	// 检查是否获取到
@@ -149,7 +152,7 @@ func (s *HeydougaCapture) GetTags() []string {
 	// 组合路径
 	uri := fmt.Sprintf("https://www.heydouga.com/get_movie_tag_all_utf8/?movie_seq=%s", m)
 	// 获取数据
-	data, err := GetResult(uri, s.Proxy, nil)
+	data, err := util.GetResult(uri, s.Proxy, nil)
 	// 检查错误
 	if err != nil {
 		return nil
@@ -175,13 +178,13 @@ func (s *HeydougaCapture) GetTags() []string {
 	return tags
 }
 
-// GetFanart 获取图片
-func (s *HeydougaCapture) GetFanart() string {
+// GetCover 获取图片
+func (s *HeydougaScraper) GetCover() string {
 	return fmt.Sprintf("https://image01-www.heydouga.com/contents/%s/%s/player_thumb.jpg", s.code1, s.code2)
 }
 
 // GetActors 获取演员
-func (s *HeydougaCapture) GetActors() map[string]string {
+func (s *HeydougaScraper) GetActors() map[string]string {
 	// 演员map
 	actors := make(map[string]string)
 	// 定义一个临时演员数组
@@ -216,11 +219,11 @@ func (s *HeydougaCapture) GetActors() map[string]string {
 }
 
 // GetURI 获取页面地址
-func (s *HeydougaCapture) GetURI() string {
+func (s *HeydougaScraper) GetURI() string {
 	return s.uri
 }
 
 // GetNumber 获取番号
-func (s *HeydougaCapture) GetNumber() string {
+func (s *HeydougaScraper) GetNumber() string {
 	return s.number
 }

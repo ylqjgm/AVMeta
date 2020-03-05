@@ -1,14 +1,16 @@
-package capture
+package scraper
 
 import (
 	"fmt"
 	"strings"
 
+	"github.com/ylqjgm/AVMeta/pkg/util"
+
 	"github.com/PuerkitoBio/goquery"
 )
 
-// JavBusCapture javbus刮削器
-type JavBusCapture struct {
+// JavBusScraper javbus刮削器
+type JavBusScraper struct {
 	Site   string            // 免翻地址
 	Proxy  string            // 代理配置
 	uri    string            // 页面地址
@@ -16,8 +18,13 @@ type JavBusCapture struct {
 	root   *goquery.Document // 根节点
 }
 
+// NewJavBusScraper 创建刮削对象
+func NewJavBusScraper(site, proxy string) *JavBusScraper {
+	return &JavBusScraper{Site: site, Proxy: proxy}
+}
+
 // Fetch 刮削
-func (s *JavBusCapture) Fetch(code string) error {
+func (s *JavBusScraper) Fetch(code string) error {
 	// 设置番号
 	s.number = strings.ToUpper(code)
 	// 获取信息
@@ -45,11 +52,11 @@ func (s *JavBusCapture) Fetch(code string) error {
 }
 
 // 获取获取
-func (s *JavBusCapture) detail() error {
+func (s *JavBusScraper) detail() error {
 	// 组合uri
-	uri := fmt.Sprintf("%s/%s", CheckDomainPrefix(s.Site), s.number)
+	uri := fmt.Sprintf("%s/%s", util.CheckDomainPrefix(s.Site), s.number)
 	// 获取节点
-	root, err := GetRoot(uri, s.Proxy, nil)
+	root, err := util.GetRoot(uri, s.Proxy, nil)
 	// 检查错误
 	if err != nil {
 		return err
@@ -69,42 +76,42 @@ func (s *JavBusCapture) detail() error {
 }
 
 // GetTitle 获取名称
-func (s *JavBusCapture) GetTitle() string {
+func (s *JavBusScraper) GetTitle() string {
 	return s.root.Find("h3").Text()
 }
 
 // GetIntro 获取简介
-func (s *JavBusCapture) GetIntro() string {
+func (s *JavBusScraper) GetIntro() string {
 	return GetDmmIntro(s.number, s.Proxy)
 }
 
 // GetDirector 获取导演
-func (s *JavBusCapture) GetDirector() string {
+func (s *JavBusScraper) GetDirector() string {
 	return s.root.Find(`a[href*="/director/"]`).Text()
 }
 
 // GetRelease 发行时间
-func (s *JavBusCapture) GetRelease() string {
+func (s *JavBusScraper) GetRelease() string {
 	return strings.ReplaceAll(s.root.Find(`p:contains("發行日期:")`).Text(), "發行日期: ", "")
 }
 
 // GetRuntime 获取时长
-func (s *JavBusCapture) GetRuntime() string {
+func (s *JavBusScraper) GetRuntime() string {
 	return strings.ReplaceAll(strings.TrimRight(s.root.Find(`p:contains("長度:")`).Text(), "分鐘"), "長度: ", "")
 }
 
 // GetStudio 获取厂商
-func (s *JavBusCapture) GetStudio() string {
+func (s *JavBusScraper) GetStudio() string {
 	return s.root.Find(`a[href*="/studio/"]`).Text()
 }
 
-// GetSerise 获取系列
-func (s *JavBusCapture) GetSerise() string {
+// GetSeries 获取系列
+func (s *JavBusScraper) GetSeries() string {
 	return s.root.Find(`a[href*="/series/"]`).Text()
 }
 
 // GetTags 获取标签
-func (s *JavBusCapture) GetTags() []string {
+func (s *JavBusScraper) GetTags() []string {
 	// 类别数组
 	var tags []string
 	// 循环获取
@@ -115,8 +122,8 @@ func (s *JavBusCapture) GetTags() []string {
 	return tags
 }
 
-// GetFanart 获取图片
-func (s *JavBusCapture) GetFanart() string {
+// GetCover 获取图片
+func (s *JavBusScraper) GetCover() string {
 	// 获取图片
 	fanart, _ := s.root.Find(`a.bigImage img`).Attr("src")
 
@@ -124,7 +131,7 @@ func (s *JavBusCapture) GetFanart() string {
 }
 
 // GetActors 获取演员
-func (s *JavBusCapture) GetActors() map[string]string {
+func (s *JavBusScraper) GetActors() map[string]string {
 	// 演员数组
 	actors := make(map[string]string)
 
@@ -143,11 +150,11 @@ func (s *JavBusCapture) GetActors() map[string]string {
 }
 
 // GetURI 获取页面地址
-func (s *JavBusCapture) GetURI() string {
+func (s *JavBusScraper) GetURI() string {
 	return s.uri
 }
 
 // GetNumber 获取番号
-func (s *JavBusCapture) GetNumber() string {
+func (s *JavBusScraper) GetNumber() string {
 	return s.number
 }
