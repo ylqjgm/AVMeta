@@ -1,11 +1,15 @@
+env:
+  - GO111MODULE=on
+  - GOPROXY=https://goproxy.in
+  - CGO_ENABLED=0
+
 before:
   hooks:
     - go mod tidy
     - go generate ./..
 
 builds:
-  - env:
-      - CGO_ENABLED=0
+  -
     main: ./AVMeta.go
     goos:
       - darwin
@@ -15,7 +19,7 @@ builds:
     goarch:
       - amd64
       - arm64
-      - arm-
+      - arm
       - 386
       - ppc64le
       - s390x
@@ -29,10 +33,18 @@ builds:
     ignore:
       - goos: darwin
         goarch: 386
+      - goos: freebsd
+        goarch: arm
+      - goos: freebsd
+        goarch: arm64
     ldflags: -s -w -X main.version={{ .Version }} -X main.commit={{ .ShortCommit }} -X main.built={{ .Date }}
 
 archives:
-  - format: tar.gz
+  -
+    replacements:
+      386: i386
+      amd64: x86_64
+    format: tar.gz
     wrap_in_directory: true
     format_overrides:
       - goos: windows
@@ -60,34 +72,7 @@ changelog:
       - '^docs:'
       - '^test:'
       - '^dev:'
+      - '^chore:'
       - 'README'
       - Merge pll request
       - Merge branch
-
-brews:
-  -
-    name: gh
-    ids: [nix]
-    github:
-      owner: github
-      name: homebrew-gh
-    skip_upload: auto
-    folder: Formula
-    url_template: "https://github.com/ylqjgm/AVMeta/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
-    homepage: "https://githb.com/ylqjgm/AVMeta"
-    descript: "一个使用 Go 语言开发的 AV 元数据刮削器"
-    commit_author:
-      name: ylqjgm
-      email: ylqjgm@gmail.com
-
-scoop:
-  url_template: "https://github.com/ylqjgm/AVMeta/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
-  bucket:
-    owner: cli
-    name: scoop-gh
-  commit_author:
-    name: ylqjgm
-    email: ylqjgm@gmail.com
-  homepage: "https://githb.com/ylqjgm/AVMeta"
-  description: "一个使用 Go 语言开发的 AV 元数据刮削器"
-  license: MIT
