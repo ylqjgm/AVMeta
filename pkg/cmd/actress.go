@@ -64,7 +64,7 @@ func (e *Executor) actressRunFunc(cmd *cobra.Command, args []string) {
 		// 入库头像
 		fmt.Println("开始入库本地女优头像...")
 		// 调用入库
-		actor.Put()
+		_ = actor.Put()
 
 		return
 	}
@@ -108,10 +108,10 @@ func fetchJavBUS() {
 	actor := actress.NewActress()
 	// 下载javbus有码
 	fmt.Println("开始下载 JavBus 有码女优头像...")
-	actor.Fetch("JAVBUS", 1, true)
+	_ = actor.Fetch("JAVBUS", 1, true)
 	// 下载javbus无码
 	fmt.Println("开始下载 JavBus 无码女优头像...")
-	actor.Fetch("JAVBUS", 1, false)
+	_ = actor.Fetch("JAVBUS", 1, false)
 }
 
 // 下载javDB
@@ -120,8 +120,8 @@ func fetchJavDB() {
 	actor := actress.NewActress()
 	// 下载javdb有码
 	fmt.Println("开始下载 JavDB 有码女优头像...")
-	actor.Fetch("JAVDB", 1, true)
+	_ = actor.Fetch("JAVDB", 1, true)
 	// 下载javdb无码
 	fmt.Println("开始下载 JavDB 无码女优头像...")
-	actor.Fetch("JAVDB", 1, false)
+	_ = actor.Fetch("JAVDB", 1, false)
 }

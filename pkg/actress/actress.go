@@ -54,7 +54,7 @@ func NewActress() *Actress {
 // site 字符串参数，指定要下载的网站名称，参见常量定义，
 // page 整数参数，指定要下载的开始页面，
 // censored 逻辑参数，指定下载的是有码女优还是无码女优。
-func (a *Actress) Fetch(site string, page int, censored bool) {
+func (a *Actress) Fetch(site string, page int, censored bool) error {
 	// 定义数据存储map
 	var acts map[string]string
 	// 定义下一页变量
@@ -71,11 +71,11 @@ func (a *Actress) Fetch(site string, page int, censored bool) {
 		// 采集
 		acts, next, err = JavDB(a.cfg.Site.JavDB, a.cfg.Base.Proxy, page, censored)
 	default:
-		return
+		return fmt.Errorf("site case error")
 	}
 	// 检查
 	if err != nil {
-		return
+		return err
 	}
 
 	// 总量
@@ -114,20 +114,22 @@ func (a *Actress) Fetch(site string, page int, censored bool) {
 
 	if next {
 		// 采集下一页
-		a.Fetch(site, page+1, censored)
+		return a.Fetch(site, page+1, censored)
 	}
+
+	return nil
 }
 
 // Put 本地图片入库
 // 扫描程序执行目录下的 actress 文件夹，
 // 将其中的所有女优头像依次入库到 Emby 中。
-func (a *Actress) Put() {
+func (a *Actress) Put() error {
 	// 获取文件列表
 	files, err := a.walkDir()
 	// 检查
 	if err != nil {
 		log.Printf("获取头像列表失败, 错误信息: %s\n", err)
-		return
+		return err
 	}
 
 	// 获取总量
@@ -170,6 +172,8 @@ func (a *Actress) Put() {
 	}
 
 	_ = bar.Finish()
+
+	return nil
 }
 
 // 下载多进程处理
