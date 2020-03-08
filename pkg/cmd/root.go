@@ -85,7 +85,7 @@ func (e *Executor) packProcess(file string, wg *util.WaitGroup) {
 		// 输出错误
 		fmt.Printf("文件: [%s] 刮削失败, 错误原因: %s\n", path.Base(file), err)
 		// 恢复文件
-		util.FailFile(file, e.cfg)
+		util.FailFile(file, e.cfg.Path.Fail)
 
 		// 进程
 		wg.Done()
