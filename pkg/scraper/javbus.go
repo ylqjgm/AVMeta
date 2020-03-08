@@ -9,7 +9,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-// JavBusScraper javbus刮削器
+// JavBusScraper javbus网站刮削器
 type JavBusScraper struct {
 	Site   string            // 免翻地址
 	Proxy  string            // 代理配置
@@ -18,7 +18,10 @@ type JavBusScraper struct {
 	root   *goquery.Document // 根节点
 }
 
-// NewJavBusScraper 创建刮削对象
+// NewJavBusScraper 返回一个被初始化的javbus刮削对象
+//
+// site 字符串参数，传入免翻地址，
+// proxy 字符串参数，传入代理信息
 func NewJavBusScraper(site, proxy string) *JavBusScraper {
 	return &JavBusScraper{Site: site, Proxy: proxy}
 }

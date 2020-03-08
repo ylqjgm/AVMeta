@@ -4,12 +4,12 @@ import (
 	"github.com/spf13/viper"
 )
 
-// BaseStruct 基础配置结构
+// BaseStruct 配置信息基础节点
 type BaseStruct struct {
 	Proxy string // 代理地址
 }
 
-// PathStruct 路径配置结构
+// PathStruct 配置信息路径节点
 type PathStruct struct {
 	Success   string // 成功存储目录
 	Fail      string // 失败存储目录
@@ -17,7 +17,7 @@ type PathStruct struct {
 	Filter    string // 文件名过滤规则
 }
 
-// MediaStruct 媒体库配置结构
+// MediaStruct 配置信息媒体库节点
 type MediaStruct struct {
 	Library   string // 媒体库类型
 	URL       string // Emby访问地址
@@ -26,13 +26,13 @@ type MediaStruct struct {
 	SecretKey string // 腾讯云 SecretKey
 }
 
-// SiteStruct 免费地址配置结构
+// SiteStruct 配置信息网站节点
 type SiteStruct struct {
 	JavBus string // javbus免翻地址
 	JavDB  string // javdb免翻地址
 }
 
-// ConfigStruct 配置结构
+// ConfigStruct 程序配置信息结构
 type ConfigStruct struct {
 	Base  BaseStruct  // 基础配置
 	Path  PathStruct  // 路径配置
@@ -40,7 +40,8 @@ type ConfigStruct struct {
 	Site  SiteStruct  // 免翻地址配置
 }
 
-// GetConfig 读取配置信息
+// GetConfig 读取配置信息，返回配置信息对象，
+// 若没有配置文件，则创建一份默认配置文件并读取返回。
 func GetConfig() (*ConfigStruct, error) {
 	// 配置名称
 	viper.SetConfigName("config")
@@ -70,7 +71,8 @@ func GetConfig() (*ConfigStruct, error) {
 	return &config, err
 }
 
-// WriteConfig 写入配置文件
+// WriteConfig 在程序执行路径下写入一份默认配置文件，
+// 若写入成功则返回配置信息，若写入失败，则返回错误信息。
 func WriteConfig() (*ConfigStruct, error) {
 	// 配置名称
 	viper.SetConfigName("config")

@@ -12,7 +12,7 @@ import (
 	"github.com/ylqjgm/AVMeta/pkg/util"
 )
 
-// Emby Emby api对象
+// Emby Emby媒体库结构体
 type Emby struct {
 	// Emby访问地址
 	hostURL string
@@ -20,19 +20,22 @@ type Emby struct {
 	apiKey string
 }
 
-// 用户api
+// 用户结构
 type embyPerson struct {
 	Name      string      `json:"Name"`
 	ID        string      `json:"Id"`
 	ImageTags embyPrimary `json:"ImageTags"`
 }
 
-// 封面api
+// 封面结构
 type embyPrimary struct {
 	Primary string `json:"Primary"`
 }
 
-// NewEmby 初始化Emby
+// NewEmby 返回一个被初始化的 Emby 对象
+//
+// hostURL 字符串参数，传入 Emby 媒体库访问地址，
+// apiKey 字符串参数，传入 Emby 的 API Key。
 func NewEmby(hostURL, apiKey string) *Emby {
 	return &Emby{
 		hostURL: hostURL,
@@ -40,7 +43,10 @@ func NewEmby(hostURL, apiKey string) *Emby {
 	}
 }
 
-// Actor 入库图片
+// Actor 单个女优头像入库
+//
+// name 字符串参数，传入女优姓名，必须与 Emby 中一致才会入库，
+// face 字符串参数，传入女优头像图片本地路径。
 func (emby *Emby) Actor(name, face string) error {
 	// 检查传入数据
 	if name == "" || face == "" {

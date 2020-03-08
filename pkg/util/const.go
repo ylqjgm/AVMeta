@@ -1,10 +1,12 @@
 package util
 
-// 定义常量
 const (
+	// TOKYOHOT 东京热网站名称常量
 	TOKYOHOT = "東京熱"
-	FC2      = "FC2"
-	HEYZO    = "HEYZO"
+	// FC2 fc2网站名称常量
+	FC2 = "FC2"
+	// HEYZO heyzo网站名称常量
+	HEYZO = "HEYZO"
 )
 
 // 定义变量

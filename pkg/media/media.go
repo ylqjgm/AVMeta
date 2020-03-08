@@ -9,7 +9,8 @@ import (
 	"github.com/ylqjgm/AVMeta/pkg/scraper"
 )
 
-// Media Nfo结构
+// Media Nfo信息结构，
+// 用以存储 nfo 文件所需各项信息。
 type Media struct {
 	XMLName   xml.Name `xml:"movie"`
 	Title     Inner    `xml:"title"`
@@ -40,18 +41,21 @@ type Media struct {
 	DirPath   string   `xml:"-"`
 }
 
-// Inner 避免简介内某些字符被转义
+// Inner 文字数据，为了避免某些内容被转义。
 type Inner struct {
 	Inner string `xml:",innerxml"`
 }
 
-// Actor 演员结构
+// Actor 演员信息，保存演员姓名及头像地址。
 type Actor struct {
 	Name  string `xml:"name"`
 	Thumb string `xml:"thumb"`
 }
 
-// ParseNfo 解析
+// ParseNfo 将刮削对象解析为 Media 结构体，
+// 解析错误时返回空对象及错误信息。
+//
+// s IScraper刮削接口，传入刮削对象
 func ParseNfo(s scraper.IScraper) (*Media, error) {
 	// 定义一个nfo对象
 	var m Media
@@ -130,7 +134,9 @@ func ParseNfo(s scraper.IScraper) (*Media, error) {
 	return &m, nil
 }
 
-// GetYear 获取日期中的年份
+// GetYear 通过获取到的发行日期获取年份信息。
+//
+// date 字符串参数，传入发行日期。
 func GetYear(date string) string {
 	// 年份搜索正则
 	re := regexp.MustCompile(`\d{4}`)
@@ -138,7 +144,9 @@ func GetYear(date string) string {
 	return re.FindString(date)
 }
 
-// GetMonth 获取日期中的月份
+// GetMonth 通过获取到的发行日期获取月份信息。
+//
+// date 字符串参数，传入发行日期。
 func GetMonth(date string) string {
 	// 月份搜索正则
 	re := regexp.MustCompile(`\d{4}-([\d]{2})-\d{2}`)
@@ -152,7 +160,8 @@ func GetMonth(date string) string {
 	return ""
 }
 
-// ConvertMap 将替换内容转换为map
+// ConvertMap 将部分内容转换为 map 对象，
+// 该方法主要用于路径配置中的数据转换。
 func (m *Media) ConvertMap() map[string]string {
 	// 定义map
 	replaceMap := make(map[string]string)

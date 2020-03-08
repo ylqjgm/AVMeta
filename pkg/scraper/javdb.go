@@ -9,7 +9,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-// JavDBScraper javdb刮削器
+// JavDBScraper javdb网站刮削器
 type JavDBScraper struct {
 	Site   string            // 免翻地址
 	Proxy  string            // 代理配置
@@ -18,7 +18,10 @@ type JavDBScraper struct {
 	root   *goquery.Document // 根节点
 }
 
-// NewJavDBScraper 创建刮削对象
+// NewJavDBScraper 返回一个被初始化的javdb刮削对象
+//
+// site 字符串参数，传入免翻地址，
+// proxy 字符串参数，传入代理信息
 func NewJavDBScraper(site, proxy string) *JavDBScraper {
 	return &JavDBScraper{Site: site, Proxy: proxy}
 }

@@ -15,7 +15,10 @@ import (
 	iai "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/iai/v20180301"
 )
 
-// ConvertJPG 转换图片为jpg格式
+// ConvertJPG 将图片转换为jpg格式，并返回错误信息
+//
+// sourceFile 字符串，传入原始图片路径，
+// newFile 字符串，传入转换后图片保存路径。
 func ConvertJPG(sourceFile, newFile string) error {
 	// 打开原文件
 	f, err := os.Open(sourceFile)
@@ -54,7 +57,11 @@ func ConvertJPG(sourceFile, newFile string) error {
 	return jpeg.Encode(cf, img, &jpeg.Options{Quality: 100})
 }
 
-// PosterCover 图片裁剪
+// PosterCover 将指定图片进行裁剪，并返回错误信息
+//
+// scrPhoto 字符串，要裁剪的图片路径，
+// newPhoto 字符串，裁剪后的图片保存路径，
+// cfg 配置信息，主要用于读取腾讯API信息。
 func PosterCover(srcPhoto, newPhoto string, cfg *ConfigStruct) error {
 	// 定义各项变量
 	var width, height, x int

@@ -15,7 +15,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-// CaribBeanComScraper 加勒比刮削器
+// CaribBeanComScraper 加勒比网站刮削器
 type CaribBeanComScraper struct {
 	Proxy  string            // 代理配置
 	uri    string            // 页面地址
@@ -23,7 +23,9 @@ type CaribBeanComScraper struct {
 	root   *goquery.Document // 根节点
 }
 
-// NewCaribBeanComScraper 初始化刮削对象
+// NewCaribBeanComScraper 返回一个被初始化的加勒比刮削对象
+//
+// proxy 字符串参数，传入代理信息
 func NewCaribBeanComScraper(proxy string) *CaribBeanComScraper {
 	return &CaribBeanComScraper{Proxy: proxy}
 }
@@ -61,7 +63,7 @@ func (s *CaribBeanComScraper) Fetch(code string) error {
 	return nil
 }
 
-// GetTitle 获取名称
+// GetTitle 获取标题
 func (s *CaribBeanComScraper) GetTitle() string {
 	return s.root.Find(`h1[itemprop="name"]`).Text()
 }
@@ -88,7 +90,7 @@ func (s *CaribBeanComScraper) GetRelease() string {
 	return s.root.Find(`span[itemprop="uploadDate"]`).Text()
 }
 
-// GetRuntime 获取时长
+// GetRuntime 影片时长
 func (s *CaribBeanComScraper) GetRuntime() string {
 	// 获取数据
 	strTime := strings.TrimSpace(s.root.Find(`span[itemprop="duration"]`).Text())
@@ -124,7 +126,7 @@ func (s *CaribBeanComScraper) GetStudio() string {
 	return "カリビアンコム"
 }
 
-// GetSeries 获取系列
+// GetSeries 影片系列
 func (s *CaribBeanComScraper) GetSeries() string {
 	return s.root.Find(`a[href*="/series/"]`).Text()
 }
@@ -141,7 +143,7 @@ func (s *CaribBeanComScraper) GetTags() []string {
 	return tags
 }
 
-// GetCover 获取图片
+// GetCover 背景图片
 func (s *CaribBeanComScraper) GetCover() string {
 	return fmt.Sprintf("https://www.caribbeancom.com/moviepages/%s/images/l_l.jpg", s.number)
 }
@@ -160,12 +162,12 @@ func (s *CaribBeanComScraper) GetActors() map[string]string {
 	return actors
 }
 
-// GetURI 获取页面地址
+// GetURI 页面地址
 func (s *CaribBeanComScraper) GetURI() string {
 	return s.uri
 }
 
-// GetNumber 获取番号
+// GetNumber 正确番号
 func (s *CaribBeanComScraper) GetNumber() string {
 	return s.number
 }

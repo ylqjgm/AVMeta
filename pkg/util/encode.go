@@ -5,7 +5,10 @@ import (
 	"os"
 )
 
-// Base64 文件Base64编码
+// Base64 将指定文件编码为 Base64 字符串，
+// 返回编码信息及错误信息。
+//
+// file 字符串参数，传入文件路径
 func Base64(file string) (string, error) {
 	// 检查错误
 	f, err := os.Open(file)

@@ -6,7 +6,10 @@ import (
 	"strings"
 )
 
-// GetCode 提取番号
+// GetCode 从文件中提取番号信息
+//
+// filename 字符串，传入要提取的文件名称，
+// filter 字符串，要对文件名称进行过滤的规则信息。
 func GetCode(filename, filter string) string {
 	// 获取正确文件名
 	filename = filepath.Base(strings.ToLower(filename))
@@ -27,7 +30,10 @@ func GetCode(filename, filter string) string {
 	return filename
 }
 
-// GetNumberPath 获取正确的保存路径
+// GetNumberPath 通过配置信息，获取到正确的保存路径
+//
+// replaceStr map对象，通过转换后的媒体各项数据，
+// cfg 配置信息，用以读取保存路径规则。
 func GetNumberPath(replaceStr map[string]string, cfg *ConfigStruct) string {
 	// 获取运行路径
 	base := GetRunPath()
@@ -56,7 +62,9 @@ func GetNumberPath(replaceStr map[string]string, cfg *ConfigStruct) string {
 	return base + "/" + rule
 }
 
-// CheckDomainPrefix 检查域名最后的斜线
+// CheckDomainPrefix 检查域名最后是否存在斜线并返回无斜线域名
+//
+// domain 字符串，传入域名
 func CheckDomainPrefix(domain string) string {
 	// 是否为空
 	if domain == "" {
@@ -73,7 +81,7 @@ func CheckDomainPrefix(domain string) string {
 	return domain
 }
 
-// IntroFilter 过滤简介
+// IntroFilter 简介信息过滤
 func IntroFilter(intro string) string {
 	// 替换<br>
 	intro = strings.ReplaceAll(intro, "<br>", "\n")

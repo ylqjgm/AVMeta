@@ -17,3 +17,5 @@ push.sh
 # vendor/
 .idea
 .idea/
+.vscode
+.vscode/

@@ -13,7 +13,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-// FC2Scraper fc2刮削器
+// FC2Scraper fc2网站刮削器
 type FC2Scraper struct {
 	Proxy       string            // 代理设置
 	uri         string            // 页面地址
@@ -33,7 +33,9 @@ type fc2tag struct {
 	Tag string `json:"tag"`
 }
 
-// NewFC2Scraper 创建刮削对象
+// NewFC2Scraper 返回一个被初始化的fc2刮削对象
+//
+// proxy 字符串参数，传入代理信息
 func NewFC2Scraper(proxy string) *FC2Scraper {
 	return &FC2Scraper{Proxy: proxy}
 }

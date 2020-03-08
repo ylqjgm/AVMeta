@@ -2,7 +2,7 @@ package util
 
 import "sync"
 
-// WaitGroup 携程对象
+// WaitGroup 线程池
 type WaitGroup struct {
 	wg sync.WaitGroup
 	p  chan struct{}

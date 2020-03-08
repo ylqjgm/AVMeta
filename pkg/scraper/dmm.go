@@ -9,7 +9,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-// DMMScraper dmm刮削器
+// DMMScraper dmm网站刮削器
 type DMMScraper struct {
 	Proxy  string            // 代理配置
 	uri    string            // 页面地址
@@ -18,7 +18,9 @@ type DMMScraper struct {
 	root   *goquery.Document // 根节点
 }
 
-// NewDMMScraper 创建刮削对象
+// NewDMMScraper 返回一个被初始化的dmm刮削对象
+//
+// proxy 字符串参数，传入代理信息
 func NewDMMScraper(proxy string) *DMMScraper {
 	return &DMMScraper{Proxy: proxy}
 }
@@ -58,7 +60,10 @@ func (s *DMMScraper) Fetch(code string) error {
 	return nil
 }
 
-// GetDmmIntro 直接获取dmm的简介
+// GetDmmIntro 从dmm网站中获取影片简介。
+//
+// code 字符串参数，传入番号，
+// proxy 字符串参数，传入代理信息
 func GetDmmIntro(code, proxy string) string {
 	// 查询所用番号
 	code = strings.ToLower(strings.ReplaceAll(strings.ReplaceAll(code, "_", ""), "-", ""))

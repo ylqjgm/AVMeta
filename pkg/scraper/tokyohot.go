@@ -11,7 +11,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-// TokyoHotScraper tokyohot刮削器
+// TokyoHotScraper tokyohot网站刮削器
 type TokyoHotScraper struct {
 	Proxy  string            // 代理配置
 	uri    string            // 页面地址
@@ -19,7 +19,9 @@ type TokyoHotScraper struct {
 	root   *goquery.Document // 根节点
 }
 
-// NewTokyoHotScraper 创建刮削对象
+// NewTokyoHotScraper 返回一个被初始化的tokyohot刮削对象
+//
+// proxy 字符串参数，传入代理信息
 func NewTokyoHotScraper(proxy string) *TokyoHotScraper {
 	return &TokyoHotScraper{Proxy: proxy}
 }

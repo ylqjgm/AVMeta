@@ -7,12 +7,15 @@ import (
 	"path/filepath"
 )
 
-// FailFile 恢复文件
-func FailFile(file string, cfg *ConfigStruct) {
+// FailFile 将整理失败的文件存储到fail目录中
+//
+// file 字符串参数，传入失败文件路径，
+// fail 字符串参数，传入fail目录路径。
+func FailFile(file, fail string) {
 	// 获取运行路径
 	base := GetRunPath()
 	// 组合路径
-	base = base + "/" + cfg.Path.Fail
+	base = base + "/" + fail
 
 	// 移动文件到失败目录
 	err := MoveFile(file, base+"/"+path.Base(file))
@@ -22,7 +25,10 @@ func FailFile(file string, cfg *ConfigStruct) {
 	}
 }
 
-// MoveFile 移动文件
+// MoveFile 移动文件到指定路径，并返回错误信息
+//
+// oldPath 字符串参数，传入文件原始路径，
+// newPath 字符串参数，传入文件移动路径。
 func MoveFile(oldPath, newPath string) error {
 	// 创建目录
 	err := os.MkdirAll(filepath.Dir(newPath), os.ModePerm)
@@ -34,7 +40,9 @@ func MoveFile(oldPath, newPath string) error {
 	return os.Rename(oldPath, newPath)
 }
 
-// GetFileSize 获取文件大小
+// GetFileSize 获取指定文件大小，失败则返回0
+//
+// file 字符串参数，传入文件路径
 func GetFileSize(file string) int64 {
 	// 获取文件信息
 	info, err := os.Stat(file)
@@ -46,7 +54,10 @@ func GetFileSize(file string) int64 {
 	return info.Size()
 }
 
-// WriteFile 写入文件
+// WriteFile 将字节集数据写入到指定文件中，并返回错误信息
+//
+// file 字符串参数，传入写入文件路径，
+// data 字节集参数，传入写入的数据。
 func WriteFile(file string, data []byte) error {
 	// 写文件
 	return ioutil.WriteFile(file, data, 0644)

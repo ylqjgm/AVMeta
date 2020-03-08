@@ -20,7 +20,11 @@ type captures struct {
 	R    *regexp.Regexp
 }
 
-// Pack 影片整理
+// Pack 整理给定影片并返回 Media 结构体，
+// 若整理失败则返回空对象及错误信息。
+//
+// file 字符串参数，传入要整理的文件路径，
+// cfg ConfigStruct结构体，传入程序配置信息。
 func Pack(file string, cfg *util.ConfigStruct) (*Media, error) {
 	// 搜索番号并获得刮削对象
 	m, err := search(file, cfg)

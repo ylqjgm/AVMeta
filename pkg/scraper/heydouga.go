@@ -13,7 +13,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-// HeydougaScraper heydouga刮削器
+// HeydougaScraper heydouga网站刮削器
 type HeydougaScraper struct {
 	Proxy  string            // 代理配置
 	uri    string            // 页面地址
@@ -35,7 +35,9 @@ type heydougaTag struct {
 	TagName string `json:"tag_name"`
 }
 
-// NewHeydougaScraper 创建刮削对象
+// NewHeydougaScraper 返回一个被初始化的heydouga刮削对象
+//
+// proxy 字符串参数，传入代理信息
 func NewHeydougaScraper(proxy string) *HeydougaScraper {
 	return &HeydougaScraper{Proxy: proxy}
 }

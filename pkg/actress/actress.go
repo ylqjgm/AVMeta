@@ -10,25 +10,29 @@ import (
 	"strings"
 	"time"
 
-	"github.com/schollz/progressbar/v2"
-
 	"github.com/ylqjgm/AVMeta/pkg/util"
+
+	"github.com/schollz/progressbar/v2"
 )
 
 const (
-	// JAVBUS javBUS
+	// JAVBUS 是 javbus 网站名称常量
 	JAVBUS = "JAVBUS"
-	// JAVDB javDB
+	// JAVDB 是 javdb 网站名称常量
 	JAVDB = "JAVDB"
 )
 
-// Actress 头像对象
+// Actress 头像管理结构体
 type Actress struct {
-	cfg  *util.ConfigStruct
+	// 程序配置
+	cfg *util.ConfigStruct
+	// Emby 媒体库API对象
 	emby *Emby
 }
 
-// NewActress 创建对象
+// NewActress 返回一个Actress对象。
+// 引用util.GetConfig方法读取配置文件，
+// 配置文件读取失败则返回空对象。
 func NewActress() *Actress {
 	// 获取配置信息
 	cfg, err := util.GetConfig()
@@ -43,7 +47,13 @@ func NewActress() *Actress {
 	}
 }
 
-// Fetch 采集
+// Fetch 远程女优头像下载。
+// 通过传入参数获取远程网站女优头像图片并下载到本地。
+// 所有图片均下载到程序执行目录下的 actress 文件夹中。
+//
+// site 字符串参数，指定要下载的网站名称，参见常量定义，
+// page 整数参数，指定要下载的开始页面，
+// censored 逻辑参数，指定下载的是有码女优还是无码女优。
 func (a *Actress) Fetch(site string, page int, censored bool) {
 	// 定义数据存储map
 	var acts map[string]string
@@ -109,6 +119,8 @@ func (a *Actress) Fetch(site string, page int, censored bool) {
 }
 
 // Put 本地图片入库
+// 扫描程序执行目录下的 actress 文件夹，
+// 将其中的所有女优头像依次入库到 Emby 中。
 func (a *Actress) Put() {
 	// 获取文件列表
 	files, err := a.walkDir()

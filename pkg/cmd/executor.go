@@ -1,3 +1,8 @@
+/*
+Package cmd 命令行操作包。
+
+AVMeta程序所有操作命令皆由此包定义，使用 cobra 第三方包编写。
+*/
 package cmd
 
 import (
@@ -25,7 +30,11 @@ type Executor struct {
 	platform  string
 }
 
-// NewExecutor 创建命令对象
+// NewExecutor 返回一个被初始化的命令对象。
+//
+// version 字符串参数，传入当前程序版本，
+// commit 字符串参数，传入最后提交的 git commit，
+// built 字符串参数，传入程序编译时间。
 func NewExecutor(version, commit, built string) *Executor {
 	e := &Executor{
 		version:   version,
@@ -44,7 +53,7 @@ func NewExecutor(version, commit, built string) *Executor {
 	return e
 }
 
-// Execute 执行命令
+// Execute 执行根命令。
 func (e *Executor) Execute() error {
 	return e.rootCmd.Execute()
 }

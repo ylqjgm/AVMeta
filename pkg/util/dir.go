@@ -8,7 +8,12 @@ import (
 	"strings"
 )
 
-// WalkDir 遍历目录
+// WalkDir 遍历指定目录下的视频文件，
+// 返回文件路径列表及错误信息。
+//
+// dirPath 字符串参数，传入要遍历的目录路径，
+// success 字符串参数，传入要过滤的success目录名称，
+// fail 字符串参数，传入要过滤的fail目录名称。
 func WalkDir(dirPath, success, fail string) ([]string, error) {
 	// 定义文件列表
 	var files []string
@@ -56,7 +61,7 @@ func WalkDir(dirPath, success, fail string) ([]string, error) {
 	return files, err
 }
 
-// GetRunPath 获取当前程序执行路径
+// GetRunPath 获取程序当前执行路径
 func GetRunPath() string {
 	// 获取当前执行路径
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))

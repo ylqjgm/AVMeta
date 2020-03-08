@@ -13,7 +13,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-// HeyzoScraper heyzo刮削器
+// HeyzoScraper heyzo网站刮削器
 type HeyzoScraper struct {
 	Proxy  string            // 代理配置
 	uri    string            // 页面地址
@@ -37,7 +37,9 @@ type heyzoJSON struct {
 	} `json:"aggregateRating"`
 }
 
-// NewHeyzoScraper 创建刮削对象
+// NewHeyzoScraper 返回一个被初始化的heyzo刮削对象
+//
+// proxy 字符串参数，传入代理信息
 func NewHeyzoScraper(proxy string) *HeyzoScraper {
 	return &HeyzoScraper{Proxy: proxy}
 }

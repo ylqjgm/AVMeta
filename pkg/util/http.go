@@ -17,7 +17,22 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-// MakeRequest 发起请求
+// MakeRequest 创建一个远程请求对象
+//
+// 请求参数：
+//
+// method 字符串参数，传入请求类型，
+// uri 字符串参数，传入请求地址，
+// proxy 字符串参数，传入代理地址，
+// body io读取接口，传入远程内容对象，
+// header map结构，传入头部信息，
+// cookies cookie数组，传入cookie信息。
+//
+// 返回数据：
+//
+// data 字节集，返回读取到的内容字节集，
+// status 整数，返回请求状态码，
+// err 错误信息。
 func MakeRequest(
 	method, uri, proxy string,
 	body io.Reader,
@@ -53,7 +68,11 @@ func MakeRequest(
 	return data, status, err
 }
 
-// GetResult 获取远程字节集数据
+// GetResult 获取远程字节集数据，并返回字节集数据及错误信息
+//
+// uri 字符串参数，传入请求地址，
+// proxy 字符串参数，传入代理地址，
+// cookies cookie数组，传入cookie信息。
 func GetResult(uri, proxy string, cookies []*http.Cookie) ([]byte, error) {
 	// 头部定义
 	header := make(map[string]string)
@@ -77,7 +96,11 @@ func GetResult(uri, proxy string, cookies []*http.Cookie) ([]byte, error) {
 	return body, err
 }
 
-// GetRoot 获取远程节点数据
+// GetRoot 获取远程树结构，并返回树结构及错误信息
+//
+// uri 字符串参数，传入请求地址，
+// proxy 字符串参数，传入代理地址，
+// cookies cookie数组，传入cookie信息。
 func GetRoot(uri, proxy string, cookies []*http.Cookie) (*goquery.Document, error) {
 	// 获取远程字节集数据
 	data, err := GetResult(uri, proxy, cookies)
@@ -96,7 +119,12 @@ func GetRoot(uri, proxy string, cookies []*http.Cookie) (*goquery.Document, erro
 	return root, nil
 }
 
-// SavePhoto 远程图片下载
+// SavePhoto 下载远程图片到本地，并返回错误信息
+//
+// uri 字符串参数，远程图片地址，
+// savePath 字符串参数，本地保存路径，
+// proxy 字符串参数，代理地址，
+// needConvert 逻辑参数，是否需要将图片转换为jpg。
 func SavePhoto(uri, savePath, proxy string, needConvert bool) error {
 	// 创建路径
 	err := os.MkdirAll(filepath.Dir(savePath), os.ModePerm)

@@ -11,7 +11,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-// SiroScraper siro刮削器
+// SiroScraper siro网站刮削器
 type SiroScraper struct {
 	Proxy  string            // 代理配置
 	uri    string            // 页面地址
@@ -19,7 +19,9 @@ type SiroScraper struct {
 	root   *goquery.Document // 根节点
 }
 
-// NewSiroScraper 创建刮削对象
+// NewSiroScraper 返回一个被初始化的siro刮削对象
+//
+// proxy 字符串参数，传入代理信息
 func NewSiroScraper(proxy string) *SiroScraper {
 	return &SiroScraper{Proxy: proxy}
 }
