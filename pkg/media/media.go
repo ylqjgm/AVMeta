@@ -52,7 +52,7 @@ type Actor struct {
 	Thumb string `xml:"thumb"`
 }
 
-// ParseNfo 将刮削对象解析为 Media 结构体，
+// ParseMedia 将刮削对象解析为 Media 结构体，
 // 解析错误时返回空对象及错误信息。
 //
 // s IScraper刮削接口，传入刮削对象
