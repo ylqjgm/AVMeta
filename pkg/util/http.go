@@ -80,6 +80,7 @@ func GetResult(uri, proxy string, cookies []*http.Cookie) ([]byte, error) {
 	header["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
 		"AppleWebKit/537.36 (KHTML, like Gecko) " +
 		"Chrome/68.0.3440.106 Safari/537.36"
+	header["referer"] = uri
 
 	// 执行请求
 	body, status, err := MakeRequest("GET", uri, proxy, nil, header, cookies)

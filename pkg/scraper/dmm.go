@@ -36,28 +36,10 @@ func (s *DMMScraper) Fetch(code string) error {
 	// 临时番号
 	s.code = code
 
-	// 组合地址
-	uri := fmt.Sprintf("https://www.dmm.co.jp/digital/videoa/-/detail/=/cid=%s", code)
-	// 打开连接
-	root, err := util.GetRoot(uri, s.Proxy, nil)
-	// 检查
-	if err != nil {
-		// 重新组合地址
-		uri = fmt.Sprintf("https://www.dmm.co.jp/mono/dvd/-/detail/=/cid=%s", code)
-		// 打开连接
-		root, err = util.GetRoot(uri, s.Proxy, nil)
-		// 再次检查错误
-		if err != nil {
-			return err
-		}
-	}
+	// 获取根节点
+	err := s.getRoot()
 
-	// 设置页面地址
-	s.uri = uri
-	// 设置根节点
-	s.root = root
-
-	return nil
+	return err
 }
 
 // GetDmmIntro 从dmm网站中获取影片简介。
@@ -65,26 +47,47 @@ func (s *DMMScraper) Fetch(code string) error {
 // code 字符串参数，传入番号，
 // proxy 字符串参数，传入代理信息
 func GetDmmIntro(code, proxy string) string {
-	// 查询所用番号
-	code = strings.ToLower(strings.ReplaceAll(strings.ReplaceAll(code, "_", ""), "-", ""))
-
-	// 组合地址
-	uri := fmt.Sprintf("https://www.dmm.co.jp/digital/videoa/-/detail/=/cid=%s", code)
-	// 打开连接
-	root, err := util.GetRoot(uri, proxy, nil)
+	// 实例化对象
+	s := NewDMMScraper(proxy)
+	// 获取数据
+	err := s.Fetch(code)
 	// 检查
 	if err != nil {
-		// 重新组合地址
-		uri = fmt.Sprintf("https://www.dmm.co.jp/mono/dvd/-/detail/=/cid=%s", code)
+		return ""
+	}
+
+	return s.GetIntro()
+}
+
+// 获取根节点
+func (s *DMMScraper) getRoot() error {
+	// 组合地址列表
+	uris := []string{
+		"https://www.dmm.co.jp/digital/videoa/-/detail/=/cid=%s",
+		"https://www.dmm.co.jp/mono/dvd/-/detail/=/cid=%s",
+		"https://www.dmm.co.jp/digital/anime/-/detail/=/cid=%s",
+		"https://www.dmm.co.jp/mono/anime/-/detail/=/cid=%s",
+	}
+
+	var err error
+	var root *goquery.Document
+
+	// 循环
+	for _, uri := range uris {
 		// 打开连接
-		root, err = util.GetRoot(uri, proxy, nil)
-		// 再次检查错误
-		if err != nil {
-			return ""
+		root, err = util.GetRoot(fmt.Sprintf(uri, s.code), s.Proxy, nil)
+		// 检查
+		if err == nil {
+			// 设置页面地址
+			s.uri = uri
+			// 设置根节点
+			s.root = root
+
+			return nil
 		}
 	}
 
-	return util.IntroFilter(root.Find(`tr td div.mg-b20.lh4 p.mg-b20`).Text())
+	return err
 }
 
 // GetTitle 获取名称

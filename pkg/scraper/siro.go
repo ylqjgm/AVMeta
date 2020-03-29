@@ -74,22 +74,22 @@ func (s *SiroScraper) GetDirector() string {
 
 // GetRelease 发行时间
 func (s *SiroScraper) GetRelease() string {
-	return s.root.Filter(`th:contains("配信開始日")`).Next().Text()
+	return s.root.Find(`th:contains("配信開始日")`).NextFiltered("td").Text()
 }
 
 // GetRuntime 获取时长
 func (s *SiroScraper) GetRuntime() string {
-	return strings.TrimRight(s.root.Find(`th:contains("収録時間")`).Next().Text(), "min")
+	return strings.TrimRight(s.root.Find(`th:contains("収録時間")`).NextFiltered("td").Text(), "min")
 }
 
 // GetStudio 获取厂商
 func (s *SiroScraper) GetStudio() string {
-	return s.root.Find(`th:contains("メーカー")`).Next().Text()
+	return s.root.Find(`th:contains("メーカー")`).NextFiltered("td").Text()
 }
 
 // GetSeries 获取系列
 func (s *SiroScraper) GetSeries() string {
-	return s.root.Find(`th:contains("シリーズ")`).Next().Text()
+	return s.root.Find(`th:contains("シリーズ")`).NextFiltered("td").Text()
 }
 
 // GetTags 获取标签
@@ -97,7 +97,7 @@ func (s *SiroScraper) GetTags() []string {
 	// 标签数组
 	var tags []string
 	// 循环获取
-	s.root.Find(`th:contains("ジャンル")`).Next().Find("a").Each(func(i int, item *goquery.Selection) {
+	s.root.Find(`th:contains("ジャンル")`).NextFiltered("td").Find("a").Each(func(i int, item *goquery.Selection) {
 		tags = append(tags, strings.TrimSpace(item.Text()))
 	})
 
@@ -118,7 +118,7 @@ func (s *SiroScraper) GetActors() map[string]string {
 	actors := make(map[string]string)
 
 	// 循环获取
-	s.root.Find(`th:contains("出演")`).Next().Find("a").Each(func(i int, item *goquery.Selection) {
+	s.root.Find(`th:contains("出演")`).NextFiltered("td").Find("a").Each(func(i int, item *goquery.Selection) {
 		// 演员名字
 		actors[strings.TrimSpace(item.Text())] = ""
 	})
@@ -126,7 +126,7 @@ func (s *SiroScraper) GetActors() map[string]string {
 	// 是否获取到
 	if len(actors) == 0 {
 		// 重新获取
-		name := s.root.Find(`th:contains("出演")`).Next().Text()
+		name := s.root.Find(`th:contains("出演")`).NextFiltered("td").Text()
 		// 获取演员名字
 		actors[strings.TrimSpace(name)] = ""
 	}

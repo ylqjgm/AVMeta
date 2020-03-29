@@ -26,6 +26,96 @@ type captures struct {
 // file 字符串参数，传入要整理的文件路径，
 // cfg ConfigStruct结构体，传入程序配置信息。
 func Pack(file string, cfg *util.ConfigStruct) (*Media, error) {
+	if cfg.Media.Library == "vsmeta" {
+		return packVSMeta(file, cfg)
+	}
+
+	return packNfo(file, cfg)
+}
+
+// 整理给定影片为 nfo 并返回 Media 结构体，
+// 若整理失败则返回空对象及错误信息。
+//
+// file 字符串参数，传入要整理的文件路径，
+// cfg ConfigStruct结构体，传入程序配置信息。
+func packNfo(file string, cfg *util.ConfigStruct) (*Media, error) {
+	// 获取采集数据
+	m, err := capture(file, cfg)
+	// 检查
+	if err != nil {
+		return nil, err
+	}
+
+	// 转换为XML
+	buff, err := mediaToXML(m)
+	// 检查
+	if err != nil {
+		return nil, err
+	}
+
+	// 写入nfo
+	err = util.WriteFile(fmt.Sprintf("%s/%s.nfo", m.DirPath, m.Number), buff)
+	// 检查
+	if err != nil {
+		return nil, err
+	}
+
+	// 获取视频后缀
+	ext := path.Ext(file)
+	// 移动视频文件
+	err = util.MoveFile(file, fmt.Sprintf("%s/%s%s", m.DirPath, m.Number, ext))
+
+	return m, err
+}
+
+// 整理给定影片为 vsmeta 并返回 VSMeta 结构体，
+// 若整理失败则返回空对象及错误信息。
+//
+// file 字符串参数，传入要整理的文件路径，
+// cfg ConfigStruct结构体，传入程序配置信息。
+func packVSMeta(file string, cfg *util.ConfigStruct) (*Media, error) {
+	// 获取整理数据
+	m, err := capture(file, cfg)
+	// 检查
+	if err != nil {
+		return nil, err
+	}
+
+	// 实例化VSMeta
+	vs := NewVSMeta()
+	// 解析为 vsmeta
+	vs.ParseVSMeta(m)
+	// 写入封面
+	vs.writePoster(fmt.Sprintf("%s/poster.jpg", m.DirPath))
+	// 写入背景
+	vs.writeFanart(fmt.Sprintf("%s/fanart.jpg", m.DirPath))
+
+	// 获取视频后缀
+	ext := path.Ext(file)
+
+	// 写入vsmeta
+	err = util.WriteFile(fmt.Sprintf("%s/%s%s.vsmeta", m.DirPath, m.Number, ext), vs.B.Bytes())
+	// 检查
+	if err != nil {
+		return nil, err
+	}
+
+	// 删除封面
+	os.Remove(fmt.Sprintf("%s/poster.jpg", m.DirPath))
+	// 删除背景
+	os.Remove(fmt.Sprintf("%s/fanart.jpg", m.DirPath))
+
+	// 移动视频文件
+	err = util.MoveFile(file, fmt.Sprintf("%s/%s%s", m.DirPath, m.Number, ext))
+
+	return m, err
+}
+
+// 整理影片并返回 Media 对象
+//
+// file 字符串参数，传入要整理的文件路径，
+// cfg ConfigStruct结构体，传入程序配置信息。
+func capture(file string, cfg *util.ConfigStruct) (*Media, error) {
 	// 搜索番号并获得刮削对象
 	m, err := search(file, cfg)
 	// 检查
@@ -70,26 +160,7 @@ func Pack(file string, cfg *util.ConfigStruct) (*Media, error) {
 	m.Poster = fmt.Sprintf("poster.jpg")
 	m.Thumb = fmt.Sprintf("poster.jpg")
 
-	// 转换为XML
-	buff, err := mediaToXML(m)
-	// 检查
-	if err != nil {
-		return nil, err
-	}
-
-	// 写入nfo
-	err = util.WriteFile(fmt.Sprintf("%s/%s.nfo", dirPath, m.Number), buff)
-	// 检查
-	if err != nil {
-		return nil, err
-	}
-
-	// 获取视频后缀
-	ext = path.Ext(file)
-	// 移动视频文件
-	err = util.MoveFile(file, fmt.Sprintf("%s/%s%s", dirPath, m.Number, ext))
-
-	return m, err
+	return m, nil
 }
 
 // 番号搜索
@@ -130,7 +201,7 @@ func search(file string, cfg *util.ConfigStruct) (*Media, error) {
 		{
 			Name: "Siro",
 			S:    scraper.NewSiroScraper(cfg.Base.Proxy),
-			R:    regexp.MustCompile(`^(siro|[0-9]{3,4}[a-zA-Z]{2,5})-[0-9]{3,4}`),
+			R:    regexp.MustCompile(`^(siro|abp|[0-9]{3,4}[a-zA-Z]{2,5})-[0-9]{3,4}`),
 		},
 		{
 			Name: "DMM",
@@ -188,7 +259,7 @@ func search(file string, cfg *util.ConfigStruct) (*Media, error) {
 	}
 
 	// 刮削并获取nfo对象
-	return ParseNfo(s)
+	return ParseMedia(s)
 }
 
 // 转换为xml

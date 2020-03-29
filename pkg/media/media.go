@@ -56,7 +56,7 @@ type Actor struct {
 // 解析错误时返回空对象及错误信息。
 //
 // s IScraper刮削接口，传入刮削对象
-func ParseNfo(s scraper.IScraper) (*Media, error) {
+func ParseMedia(s scraper.IScraper) (*Media, error) {
 	// 定义一个nfo对象
 	var m Media
 

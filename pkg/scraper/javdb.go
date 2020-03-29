@@ -101,7 +101,8 @@ func (s *JavDBScraper) search() (string, error) {
 
 // GetTitle 获取名称
 func (s *JavDBScraper) GetTitle() string {
-	return strings.ReplaceAll(s.root.Find(`title`).Text(), "| JavDB 成人影片資料庫", "")
+	title, _ := s.root.Find(`meta[property="og:title"]`).Attr("content")
+	return title
 }
 
 // GetIntro 获取简介
@@ -112,10 +113,10 @@ func (s *JavDBScraper) GetIntro() string {
 // GetDirector 获取导演
 func (s *JavDBScraper) GetDirector() string {
 	// 获取数据
-	val := s.root.Find(`strong:contains("導演")`).Parent().NextFiltered(`span.value`).Text()
+	val := s.root.Find(`strong:contains("導演")`).NextFiltered(`span.value`).Text()
 	// 检查
 	if val == "" {
-		val = s.root.Find(`strong:contains("導演")`).Parent().NextFiltered(`span.value`).Find("a").Text()
+		val = s.root.Find(`strong:contains("導演")`).NextFiltered(`span.value`).Find("a").Text()
 	}
 
 	return val
@@ -124,10 +125,10 @@ func (s *JavDBScraper) GetDirector() string {
 // GetRelease 发行时间
 func (s *JavDBScraper) GetRelease() string {
 	// 获取数据
-	val := s.root.Find(`strong:contains("時間")`).Parent().NextFiltered(`span.value`).Text()
+	val := s.root.Find(`strong:contains("時間")`).NextFiltered(`span.value`).Text()
 	// 检查
 	if val == "" {
-		val = s.root.Find(`strong:contains("時間")`).Parent().NextFiltered(`span.value`).Find("a").Text()
+		val = s.root.Find(`strong:contains("時間")`).NextFiltered(`span.value`).Find("a").Text()
 	}
 
 	return val
@@ -136,10 +137,10 @@ func (s *JavDBScraper) GetRelease() string {
 // GetRuntime 获取时长
 func (s *JavDBScraper) GetRuntime() string {
 	// 获取数据
-	val := s.root.Find(`strong:contains("時長")`).Parent().NextFiltered(`span.value`).Text()
+	val := s.root.Find(`strong:contains("時長")`).NextFiltered(`span.value`).Text()
 	// 检查
 	if val == "" {
-		val = s.root.Find(`strong:contains("時長")`).Parent().NextFiltered(`span.value`).Find("a").Text()
+		val = s.root.Find(`strong:contains("時長")`).NextFiltered(`span.value`).Find("a").Text()
 	}
 
 	// 去除多余
@@ -151,10 +152,10 @@ func (s *JavDBScraper) GetRuntime() string {
 // GetStudio 获取厂商
 func (s *JavDBScraper) GetStudio() string {
 	// 获取数据
-	val := s.root.Find(`strong:contains("片商")`).Parent().NextFiltered(`span.value`).Text()
+	val := s.root.Find(`strong:contains("片商")`).NextFiltered(`span.value`).Text()
 	// 检查
 	if val == "" {
-		val = s.root.Find(`strong:contains("片商")`).Parent().NextFiltered(`span.value`).Find("a").Text()
+		val = s.root.Find(`strong:contains("片商")`).NextFiltered(`span.value`).Find("a").Text()
 	}
 
 	return val
@@ -163,10 +164,10 @@ func (s *JavDBScraper) GetStudio() string {
 // GetSeries 获取系列
 func (s *JavDBScraper) GetSeries() string {
 	// 获取数据
-	val := s.root.Find(`strong:contains("系列")`).Parent().NextFiltered(`span.value`).Text()
+	val := s.root.Find(`strong:contains("系列")`).NextFiltered(`span.value`).Text()
 	// 检查
 	if val == "" {
-		val = s.root.Find(`strong:contains("系列")`).Parent().NextFiltered(`span.value`).Find("a").Text()
+		val = s.root.Find(`strong:contains("系列")`).NextFiltered(`span.value`).Find("a").Text()
 	}
 
 	return val
@@ -177,7 +178,7 @@ func (s *JavDBScraper) GetTags() []string {
 	// 类别数组
 	var tags []string
 	// 循环获取
-	s.root.Find(`strong:contains("类别")`).Parent().Parent().Find(".value a").Each(func(i int, item *goquery.Selection) {
+	s.root.Find(`strong:contains("類別")`).NextFiltered(`span.value`).Find("a").Each(func(i int, item *goquery.Selection) {
 		tags = append(tags, strings.TrimSpace(item.Text()))
 	})
 
@@ -198,7 +199,7 @@ func (s *JavDBScraper) GetActors() map[string]string {
 	actors := make(map[string]string)
 
 	// 循环获取
-	s.root.Find(`strong:contains("演員")`).Parent().Parent().Find(`.value a`).Each(func(i int, item *goquery.Selection) {
+	s.root.Find(`strong:contains("演員")`).NextFiltered(`span.value`).Find("a").Each(func(i int, item *goquery.Selection) {
 		// 演员名称
 		actors[strings.TrimSpace(item.Text())] = ""
 	})
