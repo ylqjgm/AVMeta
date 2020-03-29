@@ -7,6 +7,7 @@
 ![GitHub](https://img.shields.io/github/license/ylqjgm/AVMeta)
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/ylqjgm/AVMeta)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/ylqjgm/AVMeta)
+![GitHub All Releases](https://img.shields.io/github/downloads/ylqjgm/AVMeta/total)
 
 AV 元数据刮削器，使用 Golang 语言编写，具有多线程、全兼容等特点。
 
@@ -26,6 +27,7 @@ AV 元数据刮削器，使用 Golang 语言编写，具有多线程、全兼容
     * [刮削](#刮削)
         * [NFO刮削](#NFO刮削)
         * [群晖刮削](#群晖刮削)
+* [鸣谢](#鸣谢)
 
 ## FAQ
 
@@ -213,3 +215,11 @@ AVMeta
 
 > PS: 若导入元数据后依然没有信息，请在 *DS Video* 设置中重建视频索引及视频信息，并在 *DS Video* 中将视频删除一次，再次导入等待更新。
 > 这里需要注意，若在 *DS Video* 中删除视频，则对应视频文件及元数据也会一同删除，建议在本地保存一份再进行操作。
+
+## 鸣谢
+
+特别感谢以下作者及所开发的程序，本项目参考过以下几位开发者代码及思想。
+
+- [@yoshiko2](https://github.com/yoshiko2)，大部分设计思路及代码来源于 [AV_Data_Capture](https://github.com/yoshiko2/AV_Data_Capture)
+- [@junerain123](https://github.com/junerain123)，人脸识别、图片裁剪来源于 [javsdt](https://github.com/junerain123/javsdt)
+- [@soywiz](https://github.com/soywiz)，群晖支持部分来源于 [gist](https://gist.github.com/soywiz/2c10feb1231e70aca19a58aca9d6c16a)
