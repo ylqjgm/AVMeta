@@ -230,10 +230,10 @@ func search(file string, cfg *util.ConfigStruct) (*Media, error) {
 
 	// 查找正则匹配
 	for _, scr := range sr {
-		// 刮削赋值
-		s = scr.S
 		// 检查是否匹配
 		if scr.R.MatchString(code) {
+			// 刮削赋值
+			s = scr.S
 			// 刮削
 			err = s.Fetch(code)
 			break
