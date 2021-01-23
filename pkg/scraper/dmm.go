@@ -2,6 +2,7 @@ package scraper
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/ylqjgm/AVMeta/pkg/util"
@@ -69,13 +70,21 @@ func (s *DMMScraper) getRoot() error {
 		"https://www.dmm.co.jp/mono/anime/-/detail/=/cid=%s",
 	}
 
+	// 定义Cookies
+	var cookies []*http.Cookie
+	// 加入年龄确认Cookie
+	cookies = append(cookies, &http.Cookie{
+		Name:  "age_check_done",
+		Value: "1",
+	})
+
 	var err error
 	var root *goquery.Document
 
 	// 循环
 	for _, uri := range uris {
 		// 打开连接
-		root, err = util.GetRoot(fmt.Sprintf(uri, s.code), s.Proxy, nil)
+		root, err = util.GetRoot(fmt.Sprintf(uri, s.code), s.Proxy, cookies)
 		// 检查
 		if err == nil {
 			// 设置页面地址
@@ -83,6 +92,11 @@ func (s *DMMScraper) getRoot() error {
 			// 设置根节点
 			s.root = root
 
+			// 判断是否返回了地域限制
+			foreignError := root.Find(`.foreignError__desc`).Text()
+			if foreignError != "" {
+				return fmt.Errorf(foreignError)
+			}
 			return nil
 		}
 	}
@@ -173,6 +187,17 @@ func (s *DMMScraper) GetTags() []string {
 func (s *DMMScraper) GetCover() string {
 	// 获取图片
 	fanart, _ := s.root.Find(`#` + s.code).Attr("href")
+
+	if fanart == "" {
+		s.root.Find(`td:contains("品番：")`).Next().Each(func(i int, item *goquery.Selection) {
+			// 获取演员名字
+			number := strings.TrimSpace(item.Text())
+			if number != "" {
+				cover, _ := s.root.Find(`#` + number).Attr("href")
+				fanart = cover
+			}
+		})
+	}
 
 	return fanart
 }
