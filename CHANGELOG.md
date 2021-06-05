@@ -2,6 +2,15 @@
 ## [Unreleased]
 
 
+<a name="v1.0.2"></a>
+## [v1.0.2] - 2021-06-05
+### Bug Fixes
+- 修复javdb刮削问题
+
+### Features
+- 新增nfo转vsmeta功能
+
+
 <a name="v1.0.1"></a>
 ## [v1.0.1] - 2020-03-29
 ### Bug Fixes

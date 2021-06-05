@@ -4,6 +4,8 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 	"fmt"
+	"net/http"
+	"net/url"
 	"os"
 )
 
@@ -29,7 +31,7 @@ func Base64(file string) (string, error) {
 	f, err := os.Open(file)
 	// 如果出错
 	if err != nil {
-		return "", err
+		return Base64ForURI(file)
 	}
 	// 关闭
 	defer f.Close()
@@ -38,6 +40,40 @@ func Base64(file string) (string, error) {
 	buff := make([]byte, 500000)
 	// 读取文件
 	n, err := f.Read(buff)
+	// 检查错误
+	if err != nil {
+		return "", err
+	}
+
+	// Base64编码
+	source := base64.StdEncoding.EncodeToString(buff[:n])
+
+	return source, nil
+}
+
+// Base64ForURI 从远程文件获取 Base64
+// 返回编码信息及错误信息。
+//
+// uri 字符串参数，传入远程链接
+func Base64ForURI(uri string) (string, error) {
+	// 解析网址
+	u, err := url.Parse(uri)
+	if err != nil || u == nil {
+		return "", err
+	}
+
+	// 打开远程链接
+	res, err := http.Get(uri)
+	if err != nil {
+		return "", err
+	}
+	// 关闭
+	defer res.Body.Close()
+
+	// 初始化byte
+	buff := make([]byte, 500000)
+	// 读取文件
+	n, err := res.Body.Read(buff)
 	// 检查错误
 	if err != nil {
 		return "", err

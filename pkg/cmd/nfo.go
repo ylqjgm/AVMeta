@@ -8,7 +8,6 @@ import (
 	"github.com/ylqjgm/AVMeta/pkg/util"
 	"io/ioutil"
 	"log"
-	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -115,38 +114,27 @@ func (e *Executor) nfoProcess(nfo NfoFile, wg *util.WaitGroup) {
 		return
 	}
 
-	// scheme
-	var scheme = map[string]string{
-		"http":  "http",
-		"https": "https",
-	}
-
 	// 实例化vsmeta
 	vs := media.NewVSMeta()
 	// fanart
-	if util.Exists(nfo.Dir + "/fanart.jpg") {
-		m.FanArt = nfo.Dir + "/fanart.jpg"
-	} else if m.FanArt != "" {
-		uri, err := url.Parse(m.FanArt)
-		if err != nil || uri == nil {
-			m.FanArt = ""
-		}
-		if _, ok := scheme[uri.Scheme]; !ok {
-			m.FanArt = ""
+	if !util.Exists(nfo.Dir+"/fanart.jpg") && m.FanArt != "" {
+		err = util.SavePhoto(m.FanArt, fmt.Sprintf("%s/fanart.jpg", nfo.Dir), "", !strings.EqualFold(strings.ToLower(path.Ext(m.FanArt)), ".jpg"))
+		if err != nil {
+			// 输出错误
+			fmt.Printf("文件: [%s] 封面下载失败, 错误原因: %s\n", path.Base(nfo.Path), err)
 		}
 	}
 	// poster
-	if util.Exists(nfo.Dir + "/poster.jpg") {
-		m.Poster = nfo.Dir + "/poster.jpg"
-	} else if m.Poster != "" {
-		uri, err := url.Parse(m.Poster)
-		if err != nil || uri == nil {
-			m.Poster = ""
-		}
-		if _, ok := scheme[uri.Scheme]; !ok {
-			m.Poster = ""
+	if !util.Exists(nfo.Dir+"/poster.jpg") && m.Poster != "" {
+		err = util.SavePhoto(m.Poster, fmt.Sprintf("%s/poster.jpg", nfo.Dir), "", !strings.EqualFold(strings.ToLower(path.Ext(m.Poster)), ".jpg"))
+		if err != nil {
+			// 输出错误
+			fmt.Printf("文件: [%s] 封面下载失败, 错误原因: %s\n", path.Base(nfo.Path), err)
 		}
 	}
+
+	m.FanArt = fmt.Sprintf("%s/fanart.jpg", nfo.Dir)
+	m.Poster = fmt.Sprintf("%s/poster.jpg", nfo.Dir)
 
 	// 解析为 vsmeta
 	bs := vs.Convert(&m)
