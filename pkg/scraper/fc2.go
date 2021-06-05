@@ -51,7 +51,7 @@ func (s *FC2Scraper) Fetch(code string) error {
 	// 组合fc2地址
 	fc2uri := fmt.Sprintf("https://adult.contents.fc2.com/article/%s/", s.code)
 	// 组合fc2club地址
-	fc2cluburi := fmt.Sprintf("https://fc2club.com/html/FC2-%s.html", s.code)
+	fc2cluburi := fmt.Sprintf("https://fc2club.net/html/FC2-%s.html", s.code)
 
 	// 打开fc2
 	fc2Root, err := util.GetRoot(fc2uri, s.Proxy, nil)
@@ -175,7 +175,7 @@ func (s *FC2Scraper) GetCover() string {
 		return ""
 	}
 	// 组合地址
-	return fmt.Sprintf("https://fc2club.com%s", fanart)
+	return fmt.Sprintf("https://fc2club.net%s", fanart)
 }
 
 // GetActors 获取演员

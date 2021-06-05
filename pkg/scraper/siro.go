@@ -84,12 +84,22 @@ func (s *SiroScraper) GetRuntime() string {
 
 // GetStudio 获取厂商
 func (s *SiroScraper) GetStudio() string {
-	return s.root.Find(`th:contains("メーカー")`).NextFiltered("td").Text()
+	val := s.root.Find(`th:contains("メーカー")`).NextFiltered("td").Text()
+	if val == "" {
+		val = s.root.Find(`th:contains("メーカー")`).NextFiltered("td").Find("a").Text()
+	}
+
+	return val
 }
 
 // GetSeries 获取系列
 func (s *SiroScraper) GetSeries() string {
-	return s.root.Find(`th:contains("シリーズ")`).NextFiltered("td").Text()
+	val := s.root.Find(`th:contains("シリーズ")`).NextFiltered("td").Text()
+	if val=="" {
+		val=s.root.Find(`th:contains("シリーズ")`).NextFiltered("td").Find("a").Text()
+	}
+
+	return val
 }
 
 // GetTags 获取标签

@@ -101,8 +101,7 @@ func (s *JavDBScraper) search() (string, error) {
 
 // GetTitle 获取名称
 func (s *JavDBScraper) GetTitle() string {
-	title, _ := s.root.Find(`meta[property="og:title"]`).Attr("content")
-	return title
+	return s.root.Find(`h2[class="title"] strong`).Text()
 }
 
 // GetIntro 获取简介
@@ -125,10 +124,10 @@ func (s *JavDBScraper) GetDirector() string {
 // GetRelease 发行时间
 func (s *JavDBScraper) GetRelease() string {
 	// 获取数据
-	val := s.root.Find(`strong:contains("時間")`).NextFiltered(`span.value`).Text()
+	val := s.root.Find(`strong:contains("日期")`).NextFiltered(`span.value`).Text()
 	// 检查
 	if val == "" {
-		val = s.root.Find(`strong:contains("時間")`).NextFiltered(`span.value`).Find("a").Text()
+		val = s.root.Find(`strong:contains("日期")`).NextFiltered(`span.value`).Find("a").Text()
 	}
 
 	return val
