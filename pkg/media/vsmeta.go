@@ -232,3 +232,21 @@ func (v *VSMeta) subStr(str string, max, length int) string {
 
 	return str
 }
+
+// Convert 传入 nfo 对象转换为 vsmeta
+func (v *VSMeta) Convert(m *Media) []byte {
+	// 实例化VSMeta
+	vs := NewVSMeta()
+	// 解析为 vsmeta
+	vs.ParseVSMeta(m)
+	// 写入封面
+	if m.Poster != "" {
+		vs.writePoster(m.Poster)
+	}
+	// 写入背景
+	if m.FanArt != "" {
+		vs.writeFanart(m.FanArt)
+	}
+
+	return vs.B.Bytes()
+}

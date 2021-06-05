@@ -35,6 +35,7 @@ func (e *Executor) setTemplate() {
 
 命令:
   actress     头像下载、入库
+  nfo         nfo文件转换为VSMeta文件
   help        命令执行帮助
   init        生成配置文件
   version     显示程序版本{{end}}{{if .HasAvailableSubCommands}}

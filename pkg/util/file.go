@@ -63,6 +63,19 @@ func WriteFile(file string, data []byte) error {
 	return ioutil.WriteFile(file, data, 0644)
 }
 
+// ReadFile 读取文件
+//
+// file 字符串参数，传入文件路径
+func ReadFile(file string) ([]byte, error) {
+	b, err := ioutil.ReadFile(file)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
+}
+
 // Exists 检查文件是否存在
 func Exists(file string) bool {
 	// 获取文件信息

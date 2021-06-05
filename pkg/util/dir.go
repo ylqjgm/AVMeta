@@ -1,12 +1,21 @@
 package util
 
 import (
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
 )
+
+// NfoFile nfo文件结构体
+type NfoFile struct {
+	Path   string
+	Fanart string
+	Poster string
+	Dir    string
+}
 
 // WalkDir 遍历指定目录下的视频文件，
 // 返回文件路径列表及错误信息。
@@ -71,4 +80,47 @@ func GetRunPath() string {
 	}
 
 	return dir
+}
+
+// WalkNfo 遍历当前目录下所有 .nfo 文件
+func WalkNfo(dirPath string, files []NfoFile) ([]NfoFile, error) {
+	// 读取目录
+	r, err := ioutil.ReadDir(dirPath)
+	// 检查错误
+	if err != nil {
+		return nil, err
+	}
+
+	// 循环列表
+	for _, f := range r {
+		if f.IsDir() {
+			fullDir := dirPath + "/" + f.Name()
+			files, err = WalkNfo(fullDir, files)
+			if err != nil {
+				return files, err
+			}
+		} else {
+			if strings.ToLower(filepath.Ext(f.Name())) == ".nfo" {
+				// nfo变量
+				var nfo NfoFile
+				// nfo路径
+				nfo.Path = dirPath + "/" + f.Name()
+				// nfo目录
+				nfo.Dir = dirPath
+				// 是否存在fanart.jpg
+				if Exists(dirPath + "/fanart.jpg") {
+					nfo.Fanart = dirPath + "/fanart.jpg"
+				}
+				// 是否存在poster.jpg
+				if Exists(dirPath + "/poster.jpg") {
+					nfo.Poster = dirPath + "/poster.jpg"
+				}
+
+				// 加入文件列表
+				files = append(files, nfo)
+			}
+		}
+	}
+
+	return files, nil
 }
