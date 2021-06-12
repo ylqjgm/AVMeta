@@ -130,6 +130,10 @@ func (s *JavBusScraper) GetCover() string {
 	// 获取图片
 	fanart, _ := s.root.Find(`a.bigImage img`).Attr("src")
 
+	if find := strings.Contains(fanart, s.Site); !find {
+		fanart = s.Site + fanart
+	}
+
 	return fanart
 }
 

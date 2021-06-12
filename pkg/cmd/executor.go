@@ -7,7 +7,7 @@ package cmd
 
 import (
 	"fmt"
-	"log"
+	"github.com/ylqjgm/AVMeta/pkg/logs"
 	"runtime"
 
 	"github.com/ylqjgm/AVMeta/pkg/util"
@@ -69,9 +69,10 @@ func (e *Executor) initConfig() {
 		cfg, err = util.WriteConfig()
 		// 检查
 		if err != nil {
-			log.Fatalln(err)
+			logs.FatalError(err)
 		}
 	}
 
+	// 配置信息
 	e.cfg = cfg
 }

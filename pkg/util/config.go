@@ -89,7 +89,7 @@ func WriteConfig() (*ConfigStruct, error) {
 		Path: PathStruct{
 			Success:   "success",
 			Fail:      "fail",
-			Directory: "{actor}/{year}/{number}",
+			Directory: "{number}",
 			Filter:    "-hd||hd-||_hd||hd_||[||]||【||】||asfur||~||-full||_full||3xplanet||monv||云中飘荡||@||tyhg999.com||xxxxxxxx||-fhd||_fhd||thz.la",
 		},
 		Media: MediaStruct{

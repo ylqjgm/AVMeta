@@ -1,8 +1,7 @@
 package cmd
 
 import (
-	"fmt"
-	"log"
+	"github.com/ylqjgm/AVMeta/pkg/logs"
 	"path"
 
 	"github.com/ylqjgm/AVMeta/pkg/media"
@@ -47,20 +46,21 @@ func (e *Executor) setTemplate() {
 
 // root命令执行函数
 func (e *Executor) rootRunFunc(_ *cobra.Command, _ []string) {
+	// 初始化日志
+	logs.Log("")
+
 	// 获取当前执行路径
 	curDir := util.GetRunPath()
 
 	// 列当前目录
 	files, err := util.WalkDir(curDir, e.cfg.Path.Success, e.cfg.Path.Fail)
-	// 检测错误
-	if err != nil {
-		log.Fatalln(err)
-	}
+	// 错误日志
+	logs.FatalError(err)
 
 	// 获取总量
 	count := len(files)
 	// 输出总量
-	fmt.Printf("\n共探索到 %d 个视频文件, 开始刮削整理...\n\n", count)
+	logs.Info("共探索到 %d 个视频文件, 开始刮削整理...\n\n", count)
 
 	// 初始化进程
 	wg := util.NewWaitGroup(2)
@@ -84,7 +84,7 @@ func (e *Executor) packProcess(file string, wg *util.WaitGroup) {
 	// 检查
 	if err != nil {
 		// 输出错误
-		fmt.Printf("文件: [%s] 刮削失败, 错误原因: %s\n", path.Base(file), err)
+		logs.ErrorPrintf("文件 [%s] 刮削失败, 错误原因: %s\n", path.Base(file), err)
 		// 恢复文件
 		util.FailFile(file, e.cfg.Path.Fail)
 
@@ -95,7 +95,7 @@ func (e *Executor) packProcess(file string, wg *util.WaitGroup) {
 	}
 
 	// 输出正确
-	fmt.Printf("文件/番号: [%s/%s] 刮削成功, 路径: %s\n", path.Base(file), m.Number, m.DirPath)
+	logs.Info("文件/番号: [%s/%s] 刮削成功, 路径: %s\n", path.Base(file), m.Number, m.DirPath)
 
 	// 进程
 	wg.Done()

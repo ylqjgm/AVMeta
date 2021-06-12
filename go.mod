@@ -5,6 +5,7 @@ go 1.14
 require (
 	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
+	github.com/jbrodriguez/mlog v0.0.0-20180805173533-cbd5ae8e9c53 // indirect
 	github.com/pelletier/go-toml v1.6.0 // indirect
 	github.com/schollz/progressbar/v2 v2.15.0
 	github.com/smartystreets/assertions v1.0.1 // indirect
