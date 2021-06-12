@@ -82,7 +82,7 @@ func (s *HeydougaScraper) Fetch(code string) error {
 		data, status, err = util.MakeRequest("GET", uri, s.Proxy, nil, nil, nil)
 		// 检查
 		if err != nil || status >= http.StatusBadRequest {
-			return err
+			return fmt.Errorf("%s [fetch]: 404 Not Found", uri)
 		}
 	}
 
