@@ -101,7 +101,11 @@ func (s *DMMScraper) getRoot() error {
 		}
 	}
 
-	return err
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // GetTitle 获取名称

@@ -66,7 +66,7 @@ func (s *HeyzoScraper) Fetch(code string) error {
 	data, err := root.Find(`script[type="application/ld+json"]`).Html()
 	// 检查
 	if err != nil {
-		return err
+		return fmt.Errorf("%s [Find Json]: %s", uri, err)
 	}
 	// json对象
 	js := &heyzoJSON{}
@@ -76,7 +76,7 @@ func (s *HeyzoScraper) Fetch(code string) error {
 	err = json.Unmarshal([]byte(data), js)
 	// 检查
 	if err != nil {
-		return err
+		return fmt.Errorf("%s [Json]: %s", uri, err)
 	}
 
 	// 设置页面地址

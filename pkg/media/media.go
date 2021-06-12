@@ -39,6 +39,7 @@ type Media struct {
 	WebSite   string   `xml:"website"`
 	Month     string   `xml:"-"`
 	DirPath   string   `xml:"-"`
+	Source    string   `xml:"-"`
 }
 
 // Inner 文字数据，为了避免某些内容被转义。
@@ -56,9 +57,13 @@ type Actor struct {
 // 解析错误时返回空对象及错误信息。
 //
 // s IScraper刮削接口，传入刮削对象
-func ParseMedia(s scraper.IScraper) (*Media, error) {
+// site 字符串参数，传入刮削网站
+func ParseMedia(s scraper.IScraper, site string) (*Media, error) {
 	// 定义一个nfo对象
 	var m Media
+
+	// 设定刮削网站
+	m.Source = site
 
 	// 检查刮削对象
 	if s == nil {

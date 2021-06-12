@@ -77,12 +77,12 @@ func (v *VSMeta) ParseVSMeta(m *Media) {
 
 // 写入标签
 func (v *VSMeta) writeTag(tag uint8) {
-	binary.Write(&v.B, binary.LittleEndian, tag)
+	_ = binary.Write(&v.B, binary.LittleEndian, tag)
 }
 
 // 写入数字
 func (v *VSMeta) writeInt(num int) {
-	binary.Write(&v.B, binary.LittleEndian, uint8(num))
+	_ = binary.Write(&v.B, binary.LittleEndian, uint8(num))
 }
 
 // 写入字符串
@@ -95,7 +95,7 @@ func (v *VSMeta) writeBytes(bs []byte) {
 	// 先写入长度
 	v.writeLength(len(bs))
 	// 写入字节集
-	binary.Write(&v.B, binary.LittleEndian, bs)
+	_ = binary.Write(&v.B, binary.LittleEndian, bs)
 }
 
 // 写入长度
@@ -110,12 +110,12 @@ func (v *VSMeta) writeLengthByBuffer(length int, buf *bytes.Buffer) {
 	// 只要长度大于128则循环处理
 	for length > 128 {
 		// 取余
-		binary.Write(buf, binary.LittleEndian, byte((length%128)+128))
+		_ = binary.Write(buf, binary.LittleEndian, byte((length%128)+128))
 		// 长度处理
 		length = int(math.Floor(float64(length) / float64(128)))
 	}
 	// 写入长度
-	binary.Write(buf, binary.LittleEndian, byte(length))
+	_ = binary.Write(buf, binary.LittleEndian, byte(length))
 }
 
 // 写入组数据

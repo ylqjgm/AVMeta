@@ -174,6 +174,10 @@ func (s *FC2Scraper) GetCover() string {
 	if fanart == "" {
 		return ""
 	}
+
+	if fanart[0:2] == ".." {
+		fanart = fanart[2:]
+	}
 	// 组合地址
 	return fmt.Sprintf("https://fc2club.net%s", fanart)
 }

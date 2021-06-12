@@ -55,7 +55,7 @@ func MakeRequest(
 	res, err := client.Do(req)
 	// 检查错误
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, fmt.Errorf("%s [Request]: %s", uri, err)
 	}
 
 	// 获取请求状态码
@@ -91,7 +91,7 @@ func GetResult(uri, proxy string, cookies []*http.Cookie) ([]byte, error) {
 
 	// 检查状态码
 	if http.StatusBadRequest <= status {
-		err = fmt.Errorf("%d", status)
+		err = fmt.Errorf("%s [Http Status]: %d", uri, status)
 	}
 
 	return body, err
@@ -202,7 +202,7 @@ func createRequest(method, uri string, body io.Reader, header map[string]string,
 	req, err := http.NewRequest(method, uri, body)
 	// 检查错误
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s [Request]: %s", uri, err)
 	}
 
 	// 循环头部信息

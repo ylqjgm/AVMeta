@@ -4,10 +4,10 @@ import (
 	"encoding/xml"
 	"fmt"
 	"github.com/spf13/cobra"
+	"github.com/ylqjgm/AVMeta/pkg/logs"
 	"github.com/ylqjgm/AVMeta/pkg/media"
 	"github.com/ylqjgm/AVMeta/pkg/util"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -50,6 +50,9 @@ func (e *Executor) initNfo() {
 
 // 转换执行命令
 func (e *Executor) nfoRunFunc(cmd *cobra.Command, args []string) {
+	// 初始化日志
+	logs.Log("")
+
 	// 获取当前执行路径
 	curDir := util.GetRunPath()
 
@@ -59,14 +62,12 @@ func (e *Executor) nfoRunFunc(cmd *cobra.Command, args []string) {
 	// 列当前目录
 	nfos, err := e.walk(curDir, nfos)
 	// 检测错误
-	if err != nil {
-		log.Fatalln(err)
-	}
+	logs.FatalError(err)
 
 	// 获取总量
 	count := len(nfos)
 	// 输出总量
-	fmt.Printf("\n共探索到 %d 个 nfo 文件, 开始转换...\n\n", count)
+	logs.Info("共探索到 %d 个 nfo 文件, 开始转换...\n\n", count)
 
 	// 初始化进程
 	wg := util.NewWaitGroup(2)
@@ -90,7 +91,7 @@ func (e *Executor) nfoProcess(nfo NfoFile, wg *util.WaitGroup) {
 	// 检查
 	if err != nil {
 		// 输出错误
-		fmt.Printf("文件: [%s] 打开失败, 错误原因: %s\n", path.Base(nfo.Path), err)
+		logs.Error("文件: [%s] 打开失败, 错误原因: %s\n", path.Base(nfo.Path), err)
 
 		// 进程
 		wg.Done()
@@ -106,7 +107,7 @@ func (e *Executor) nfoProcess(nfo NfoFile, wg *util.WaitGroup) {
 	// 检查错误
 	if err != nil {
 		// 输出错误
-		fmt.Printf("文件: [%s] 打开失败, 错误原因: %s\n", path.Base(nfo.Path), err)
+		logs.Error("文件: [%s] 打开失败, 错误原因: %s\n", path.Base(nfo.Path), err)
 
 		// 进程
 		wg.Done()
@@ -120,8 +121,8 @@ func (e *Executor) nfoProcess(nfo NfoFile, wg *util.WaitGroup) {
 	if !util.Exists(nfo.Dir+"/fanart.jpg") && m.FanArt != "" {
 		err = util.SavePhoto(m.FanArt, fmt.Sprintf("%s/fanart.jpg", nfo.Dir), "", !strings.EqualFold(strings.ToLower(path.Ext(m.FanArt)), ".jpg"))
 		if err != nil {
-			// 输出错误
-			fmt.Printf("文件: [%s] 封面下载失败, 错误原因: %s\n", path.Base(nfo.Path), err)
+			// 输出警告
+			logs.Warning("文件: [%s] 封面下载失败, 错误原因: %s\n", path.Base(nfo.Path), err)
 		}
 	}
 	// poster
@@ -129,7 +130,7 @@ func (e *Executor) nfoProcess(nfo NfoFile, wg *util.WaitGroup) {
 		err = util.SavePhoto(m.Poster, fmt.Sprintf("%s/poster.jpg", nfo.Dir), "", !strings.EqualFold(strings.ToLower(path.Ext(m.Poster)), ".jpg"))
 		if err != nil {
 			// 输出错误
-			fmt.Printf("文件: [%s] 封面下载失败, 错误原因: %s\n", path.Base(nfo.Path), err)
+			logs.Warning("文件: [%s] 封面下载失败, 错误原因: %s\n", path.Base(nfo.Path), err)
 		}
 	}
 
@@ -147,7 +148,7 @@ func (e *Executor) nfoProcess(nfo NfoFile, wg *util.WaitGroup) {
 	// 检查
 	if err != nil {
 		// 输出错误
-		fmt.Printf("文件: [%s] 转换失败, 错误原因: %s\n", path.Base(nfo.Path), err)
+		logs.Error("文件: [%s] 转换失败, 错误原因: %s\n", path.Base(nfo.Path), err)
 
 		// 进程
 		wg.Done()
@@ -156,7 +157,7 @@ func (e *Executor) nfoProcess(nfo NfoFile, wg *util.WaitGroup) {
 	}
 
 	// 输出正确
-	fmt.Printf("文件: [%s/%s] 转换成功, 路径: %s\n", path.Base(nfo.Path), m.Number, nfo.Dir)
+	logs.Info("文件: [%s/%s] 转换成功, 路径: %s\n", path.Base(nfo.Path), m.Number, nfo.Dir)
 
 	// 进程
 	wg.Done()

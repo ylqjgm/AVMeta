@@ -52,7 +52,7 @@ func (s *CaribBeanComScraper) Fetch(code string) error {
 	root, err := goquery.NewDocumentFromReader(reader)
 	// 检查
 	if err != nil {
-		return err
+		return fmt.Errorf("%s [NewDocument]: %s", uri, err)
 	}
 
 	// 设置页面地址

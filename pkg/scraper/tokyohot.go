@@ -34,7 +34,7 @@ func (s *TokyoHotScraper) Fetch(code string) error {
 	id, err := s.search()
 	// 检查
 	if id == "" || err != nil {
-		return fmt.Errorf("404 Not Found")
+		return fmt.Errorf("%s [Search]: Not Found ID or Error: %s", code, err)
 	}
 
 	// 组合地址
@@ -62,13 +62,12 @@ func (s *TokyoHotScraper) search() (id string, err error) {
 	root, err := util.GetRoot(uri, s.Proxy, nil)
 	// 检查错误
 	if err != nil {
-		return
+		return "", fmt.Errorf("%s [Search]: %s", uri, err)
 	}
 
 	// 是否找到
 	if -1 < root.Find(`ul.list > li:contains("沒有登入")`).Index() {
-		err = fmt.Errorf("404 Not Found")
-		return
+		return "", fmt.Errorf("%s [Search]: 没有登入", uri)
 	}
 
 	// 获取结果
@@ -84,12 +83,6 @@ func (s *TokyoHotScraper) search() (id string, err error) {
 		// 获取地址链接
 		id, _ = item.Attr("href")
 	})
-
-	// 检查是否获取到
-	if id == "" {
-		err = fmt.Errorf("404 Not Found")
-		return
-	}
 
 	return id, err
 }

@@ -46,7 +46,7 @@ func (s *JavBusScraper) Fetch(code string) error {
 			err = s.detail()
 			// 检查错误
 			if err != nil {
-				return fmt.Errorf("404 Not Found")
+				return err
 			}
 		}
 	}
@@ -67,7 +67,7 @@ func (s *JavBusScraper) detail() error {
 
 	// 查找是否获取到
 	if -1 == root.Find(`h3`).Index() {
-		return fmt.Errorf("404 Not Found")
+		return fmt.Errorf("%s [Find h3]: 404 Not Found", uri)
 	}
 
 	// 设置页面地址

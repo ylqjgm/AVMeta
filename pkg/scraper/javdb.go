@@ -34,7 +34,7 @@ func (s *JavDBScraper) Fetch(code string) error {
 	id, err := s.search()
 	// 检查错误
 	if err != nil {
-		return err
+		return fmt.Errorf("%s [Search]: %s", code, err)
 	}
 
 	// 组合地址
@@ -44,7 +44,7 @@ func (s *JavDBScraper) Fetch(code string) error {
 	root, err := util.GetRoot(uri, s.Proxy, nil)
 	// 检查错误
 	if err != nil {
-		return err
+		return fmt.Errorf("%s [fetch]: %s", uri, err)
 	}
 
 	// 设置页面地址
@@ -93,7 +93,7 @@ func (s *JavDBScraper) search() (string, error) {
 
 	// 是否获取到
 	if id == "" {
-		return "", fmt.Errorf("404 Not Found")
+		return "", fmt.Errorf("%s [fetch]: 404 Not Found ID", uri)
 	}
 
 	return id, nil

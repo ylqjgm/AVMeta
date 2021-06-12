@@ -2,7 +2,7 @@ package actress
 
 import (
 	"fmt"
-	"log"
+	"github.com/ylqjgm/AVMeta/pkg/logs"
 	"os"
 	"path"
 	"path/filepath"
@@ -34,12 +34,13 @@ type Actress struct {
 // 引用util.GetConfig方法读取配置文件，
 // 配置文件读取失败则返回空对象。
 func NewActress() *Actress {
+	// 初始化日志
+	logs.Log("actress")
+
 	// 获取配置信息
 	cfg, err := util.GetConfig()
 	// 检查
-	if err != nil {
-		return nil
-	}
+	logs.FatalError(err)
 
 	return &Actress{
 		cfg:  cfg,
@@ -128,7 +129,7 @@ func (a *Actress) Put() error {
 	files, err := a.walkDir()
 	// 检查
 	if err != nil {
-		log.Printf("获取头像列表失败, 错误信息: %s\n", err)
+		logs.Error("获取头像列表失败, 错误信息: %s\n", err)
 		return err
 	}
 

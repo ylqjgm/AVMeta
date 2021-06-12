@@ -54,14 +54,14 @@ func (s *HeydougaScraper) Fetch(code string) error {
 	code = strings.TrimSpace(strings.ReplaceAll(strings.ReplaceAll(r.FindString(code), "PPV", ""), "HEYDOUGA", ""))
 	// 检查是否为空
 	if code == "" {
-		return fmt.Errorf("找不到番号")
+		return fmt.Errorf("%s: 找不到番号", code)
 	}
 
 	// 番号分割
 	cs := strings.Split(code, "-")
 	// 检查是否有两个
 	if len(cs) < 2 {
-		return fmt.Errorf("找不到番号")
+		return fmt.Errorf("%s: 找不到番号", code)
 	}
 
 	// 设置番号前后缀
@@ -82,7 +82,7 @@ func (s *HeydougaScraper) Fetch(code string) error {
 		data, status, err = util.MakeRequest("GET", uri, s.Proxy, nil, nil, nil)
 		// 检查
 		if err != nil || status >= http.StatusBadRequest {
-			return fmt.Errorf("404 Not Found")
+			return err
 		}
 	}
 
@@ -90,7 +90,7 @@ func (s *HeydougaScraper) Fetch(code string) error {
 	root, err := goquery.NewDocumentFromReader(bytes.NewReader(data))
 	// 检查
 	if err != nil {
-		return err
+		return fmt.Errorf("%s [NewDocument]: %s", uri, err)
 	}
 
 	// 设置番号

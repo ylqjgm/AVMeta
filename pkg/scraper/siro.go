@@ -95,8 +95,8 @@ func (s *SiroScraper) GetStudio() string {
 // GetSeries 获取系列
 func (s *SiroScraper) GetSeries() string {
 	val := s.root.Find(`th:contains("シリーズ")`).NextFiltered("td").Text()
-	if val=="" {
-		val=s.root.Find(`th:contains("シリーズ")`).NextFiltered("td").Find("a").Text()
+	if val == "" {
+		val = s.root.Find(`th:contains("シリーズ")`).NextFiltered("td").Find("a").Text()
 	}
 
 	return val

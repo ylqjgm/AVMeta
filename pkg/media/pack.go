@@ -3,6 +3,7 @@ package media
 import (
 	"encoding/xml"
 	"fmt"
+	"github.com/ylqjgm/AVMeta/pkg/logs"
 	"os"
 	"path"
 	"regexp"
@@ -101,9 +102,9 @@ func packVSMeta(file string, cfg *util.ConfigStruct) (*Media, error) {
 	}
 
 	// 删除封面
-	os.Remove(fmt.Sprintf("%s/poster.jpg", m.DirPath))
+	_ = os.Remove(fmt.Sprintf("%s/poster.jpg", m.DirPath))
 	// 删除背景
-	os.Remove(fmt.Sprintf("%s/fanart.jpg", m.DirPath))
+	_ = os.Remove(fmt.Sprintf("%s/fanart.jpg", m.DirPath))
 
 	// 移动视频文件
 	err = util.MoveFile(file, fmt.Sprintf("%s/%s%s", m.DirPath, m.Number, ext))
@@ -228,15 +229,27 @@ func search(file string, cfg *util.ConfigStruct) (*Media, error) {
 	// 定义一个刮削对象
 	var s scraper.IScraper
 
+	// 计数变量
+	i := 0
+	// 刮削网站变量
+	var site string
+
 	// 查找正则匹配
 	for _, scr := range sr {
 		// 检查是否匹配
 		if scr.R.MatchString(code) {
+			// 计数自增
+			i++
 			// 刮削赋值
 			s = scr.S
+			// 刮削网站
+			site = scr.Name
 			// 刮削
-			err = s.Fetch(code)
-			break
+			if err = s.Fetch(code); err == nil {
+				break
+			} else {
+				logs.Info("文件 [%s] 第 %d 次刮削失败，刮削来源：[%s]，错误原因：%s", path.Base(file), i, scr.Name, err)
+			}
 		}
 	}
 
@@ -244,11 +257,17 @@ func search(file string, cfg *util.ConfigStruct) (*Media, error) {
 	if err != nil || s == nil {
 		// 尝试刮削
 		for _, sc := range ss {
+			// 计数自增
+			i++
 			// 刮削赋值
 			s = sc.S
+			// 刮削网站
+			site = sc.Name
 			// 刮削
 			if err = s.Fetch(code); err == nil {
 				break
+			} else {
+				logs.Info("文件 [%s] 第 %d 次刮削失败，刮削来源：[%s]，错误原因：%s", path.Base(file), i, sc.Name, err)
 			}
 		}
 	}
@@ -259,7 +278,7 @@ func search(file string, cfg *util.ConfigStruct) (*Media, error) {
 	}
 
 	// 刮削并获取nfo对象
-	return ParseMedia(s)
+	return ParseMedia(s, site)
 }
 
 // 转换为xml

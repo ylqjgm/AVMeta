@@ -92,12 +92,7 @@ func Warning(format string, a ...interface{}) {
 }
 
 // Error 错误信息
-func Error(err error) {
-	ErrorPrintf("%s\n", err)
-}
-
-// ErrorPrintf 错误信息
-func ErrorPrintf(format string, a ...interface{}) {
+func Error(format string, a ...interface{}) {
 	_ = Logger.ErrorMessage.Output(2, fmt.Sprintf(format, a...))
 }
 
